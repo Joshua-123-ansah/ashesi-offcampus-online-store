@@ -1,5 +1,5 @@
 // src/pages/Checkout.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Container,
@@ -17,7 +17,8 @@ import api from '../api';
 function Checkout() {
     const location = useLocation();
     const navigate = useNavigate();
-    const cart = location.state?.cart || {};
+    const cart = useMemo(() => location.state?.cart || {}, [location.state?.cart]);
+
 
     const [items, setItems]     = useState([]);
     const [loading, setLoading] = useState(true);

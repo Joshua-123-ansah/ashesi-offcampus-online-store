@@ -37,35 +37,47 @@ function DeliveryStatus() {
     const [loading, setLoading]       = useState(true);
     const [error, setError]           = useState(null);
 
-    const fetchStatus = async () => {
-        if (!orderId) {
-            setError('Order has been delivered or there is no order to track.');
-            setLoading(false);
-            return;
-        }
-        try {
-            const res = await api.get(`/api/orders/${orderId}/status/`);
-            const { status } = res.data;
-            setActiveStep(statusMap[status] ?? 0);
-
-            // once delivered, clear saved orderId
-            if (status === 'DELIVERED') {
-                localStorage.removeItem('lastOrderId');
-                localStorage.removeItem('cart');
-            }
-
-            setLoading(false);
-        } catch (err) {
-            console.error('Failed to fetch order status:', err);
-            setError('Unable to load order status.');
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        let isMounted = true;
+
+        const fetchStatus = async () => {
+            if (!orderId) {
+                if (isMounted) {
+                    setError('Order has been delivered or there is no order to track.');
+                    setLoading(false);
+                }
+                return;
+            }
+            try {
+                const res = await api.get(`/api/orders/${orderId}/status/`);
+                const { status } = res.data;
+                if (isMounted) {
+                    setActiveStep(statusMap[status] ?? 0);
+
+                    // once delivered, clear saved orderId
+                    if (status === 'DELIVERED') {
+                        localStorage.removeItem('lastOrderId');
+                        localStorage.removeItem('cart');
+                    }
+
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error('Failed to fetch order status:', err);
+                if (isMounted) {
+                    setError('Unable to load order status.');
+                    setLoading(false);
+                }
+            }
+        };
+
         fetchStatus();
-        const interval = setInterval(fetchStatus, 30 * 1000); // every 30s
-        return () => clearInterval(interval);
+        const interval = setInterval(fetchStatus, 30 * 1000);
+
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
     }, [orderId]);
 
     if (loading) {

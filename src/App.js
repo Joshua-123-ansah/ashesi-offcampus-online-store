@@ -1,6 +1,6 @@
 // src/App.js
 import React from 'react';
-import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import Home from './pages/Home';
 import Shop from './pages/Shop';
 import Checkout from './pages/Checkout';
@@ -13,11 +13,6 @@ import NotFoundPage from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PlaceOrder from "./pages/PlaceOrder";
 import ResetPassword from "./pages/ResetPassword";
-
-function Logout() {
-    localStorage.clear();
-    return <Navigate to="/login" />;
-}
 
 function RegisterAndLogout() {
     return <SignUp />;

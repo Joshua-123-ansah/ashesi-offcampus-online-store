@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import {Container, TextField, Button, Typography, Box, Link, Alert} from '@mui/material';
 import Navbar from '../components/Navbar';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import api from '../api';
 
 function SignUp() {
@@ -22,7 +22,6 @@ function SignUp() {
     const [passwordMatch, setPasswordMatch] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [step, setStep] = useState('form');
-    const navigate = useNavigate();
 
     const usernameRegex = /^[A-Za-z0-9@.+\-_]{1,150}$/;
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;

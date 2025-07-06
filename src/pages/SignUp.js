@@ -1,6 +1,19 @@
 // src/pages/SignUp.js
 import React, { useState } from 'react';
-import {Container, TextField, Button, Typography, Box, Link, Alert} from '@mui/material';
+import {
+    Container,
+    TextField,
+    Button,
+    Typography,
+    Box,
+    Link,
+    Paper,
+    Alert,
+    Grid,
+    InputAdornment,
+    IconButton
+} from '@mui/material';
+import { Visibility, VisibilityOff, Person, Email, Phone, Home as HomeIcon, Lock } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
 import { Link as RouterLink } from 'react-router-dom';
 import api from '../api';
@@ -17,6 +30,8 @@ function SignUp() {
         password: '',
         confirmPassword: '',
     });
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [usernameValid, setUsernameValid] = useState(null);
     const [passwordValid, setPasswordValid] = useState(null);
     const [passwordMatch, setPasswordMatch] = useState(true);
@@ -86,132 +101,383 @@ function SignUp() {
 
     if (step === 'sent') {
         return (
-            <div>
-                <Navbar/>
-                <Container sx={{ mt: 4, textAlign: 'center' }}>
-                    <Alert severity="success" sx={{ mb: 2 }}>
-                        Thanks for signing up!<br />
-                        We’ve sent a verification link to <strong>{formData.email}</strong>.<br />
-                        Please check your inbox and click that link to activate your account.
-                    </Alert>
-                    <Typography>
-                        Once you’ve verified your email, you can{' '}
-                        <Link component={RouterLink} to="/login">
-                            log in here
-                        </Link>.
-                    </Typography>
+            <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+                <Navbar />
+                <Container maxWidth="sm" sx={{ py: 6 }}>
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: 6,
+                            borderRadius: 3,
+                            backgroundColor: 'white',
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                            textAlign: 'center'
+                        }}
+                    >
+                        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                                Account Created Successfully!
+                            </Typography>
+                            <Typography>
+                                We've sent a verification link to <strong>{formData.email}</strong>.
+                                Please check your inbox and click the link to activate your account.
+                            </Typography>
+                        </Alert>
+
+                        <Typography variant="body1" sx={{ mb: 3 }}>
+                            Once you've verified your email, you can{' '}
+                            <Link
+                                component={RouterLink}
+                                to="/login"
+                                sx={{
+                                    color: '#06C167',
+                                    fontWeight: 600,
+                                    textDecoration: 'none',
+                                    '&:hover': { textDecoration: 'underline' }
+                                }}
+                            >
+                                sign in here
+                            </Link>
+                        </Typography>
+                    </Paper>
                 </Container>
             </div>
         );
     }
 
     return (
-        <div>
-            <Navbar title="Sign Up" />
-            <Container sx={{ marginTop: 4 }}>
-                <Box
-                    component="form"
-                    onSubmit={handleSubmit}
+        <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+            <Navbar />
+
+            <Container maxWidth="md" sx={{ py: 6 }}>
+                <Paper
+                    elevation={0}
                     sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
-                        maxWidth: 400,
-                        margin: '0 auto',
+                        p: 6,
+                        borderRadius: 3,
+                        backgroundColor: 'white',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
                     }}
                 >
-                    <TextField
-                        required
-                        label="First Name"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                    />
-                    <TextField
-                        required
-                        label="Last Name"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                    />
-                    <TextField
-                        required
-                        label="Username"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        error={usernameValid === false}
-                        helperText={
-                            usernameValid === false
-                                ? '1–150 chars: letters, digits, and @ . + - _ only.'
-                                : ''
-                        }
-                    />
-                    <TextField
-                        required
-                        label="Email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                    />
-                    <TextField
-                        required
-                        label="Phone Number"
-                        name="phone"
-                        placeholder="+233 xxx xxx xxx"
-                        value={formData.phone}
-                        onChange={handleChange}
-                    />
-                    <TextField
-                        required
-                        label="Hostel or Office Name"
-                        name="hostelOrOfficeName"
-                        value={formData.hostelOrOfficeName}
-                        onChange={handleChange}
-                    />
-                    <TextField
-                        required
-                        label="Room or Office Number"
-                        name="roomOrOfficeNumber"
-                        value={formData.roomOrOfficeNumber}
-                        onChange={handleChange}
-                    />
-                    <TextField
-                        required
-                        label="Password"
-                        name="password"
-                        type="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                    />
-                    {formData.password && (
-                        <Typography variant="body2" sx={{ color: passwordValid ? 'green' : 'red' }}>
-                            {passwordValid
-                                ? 'Password meets the requirements.'
-                                : 'Password must be at least 8 characters and include letters and numbers.'}
+                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                        <Typography
+                            variant="h3"
+                            sx={{
+                                fontWeight: 700,
+                                color: '#2d3748',
+                                mb: 1
+                            }}
+                        >
+                            Create Account
                         </Typography>
-                    )}
-                    <TextField
-                        required
-                        label="Confirm Password"
-                        name="confirmPassword"
-                        type="password"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        error={!passwordMatch}
-                        helperText={!passwordMatch && 'Passwords do not match.'}
-                    />
-                    <Button variant="contained" type="submit" disabled={isLoading}>
-                        {isLoading ? 'Signing up…' : 'Sign Up'}
-                    </Button>
-                    <Typography variant="body2" align="center">
-                        Already have an account?{' '}
-                        <Link component={RouterLink} to="/login" underline="hover">
-                            Login
-                        </Link>
-                    </Typography>
-                </Box>
+                        <Typography
+                            variant="body1"
+                            sx={{ color: '#718096', fontSize: '1.1rem' }}
+                        >
+                            Join Ashesi Eats and get your favorite meals delivered
+                        </Typography>
+                    </Box>
+
+                    <Box component="form" onSubmit={handleSubmit}>
+                        <Grid container spacing={3}>
+                            {/* Personal Information */}
+                            <Grid item xs={12}>
+                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748' }}>
+                                    Personal Information
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="First Name"
+                                    name="firstName"
+                                    value={formData.firstName}
+                                    onChange={handleChange}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Person sx={{ color: '#718096' }} />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            backgroundColor: '#f8f9fa'
+                                        }
+                                    }}
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Last Name"
+                                    name="lastName"
+                                    value={formData.lastName}
+                                    onChange={handleChange}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            backgroundColor: '#f8f9fa'
+                                        }
+                                    }}
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Username"
+                                    name="username"
+                                    value={formData.username}
+                                    onChange={handleChange}
+                                    error={usernameValid === false}
+                                    helperText={
+                                        usernameValid === false
+                                            ? '1–150 chars: letters, digits, and @ . + - _ only.'
+                                            : ''
+                                    }
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            backgroundColor: '#f8f9fa'
+                                        }
+                                    }}
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Email"
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Email sx={{ color: '#718096' }} />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            backgroundColor: '#f8f9fa'
+                                        }
+                                    }}
+                                />
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Phone Number"
+                                    name="phone"
+                                    placeholder="+233 xxx xxx xxx"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Phone sx={{ color: '#718096' }} />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            backgroundColor: '#f8f9fa'
+                                        }
+                                    }}
+                                />
+                            </Grid>
+
+                            {/* Address Information */}
+                            <Grid item xs={12}>
+                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748', mt: 2 }}>
+                                    Delivery Address
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Hostel or Office Name"
+                                    name="hostelOrOfficeName"
+                                    value={formData.hostelOrOfficeName}
+                                    onChange={handleChange}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <HomeIcon sx={{ color: '#718096' }} />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            backgroundColor: '#f8f9fa'
+                                        }
+                                    }}
+                                />
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Room or Office Number"
+                                    name="roomOrOfficeNumber"
+                                    value={formData.roomOrOfficeNumber}
+                                    onChange={handleChange}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            backgroundColor: '#f8f9fa'
+                                        }
+                                    }}
+                                />
+                            </Grid>
+
+                            {/* Password */}
+                            <Grid item xs={12}>
+                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748', mt: 2 }}>
+                                    Security
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Password"
+                                    name="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Lock sx={{ color: '#718096' }} />
+                                            </InputAdornment>
+                                        ),
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    edge="end"
+                                                >
+                                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            backgroundColor: '#f8f9fa'
+                                        }
+                                    }}
+                                />
+                                {formData.password && (
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            color: passwordValid ? '#06C167' : '#e53e3e',
+                                            mt: 1,
+                                            fontSize: '0.875rem'
+                                        }}
+                                    >
+                                        {passwordValid
+                                            ? '✓ Password meets requirements'
+                                            : 'Password must be at least 8 characters with letters and numbers'}
+                                    </Typography>
+                                )}
+                            </Grid>
+
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    required
+                                    fullWidth
+                                    label="Confirm Password"
+                                    name="confirmPassword"
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    error={!passwordMatch}
+                                    helperText={!passwordMatch && 'Passwords do not match'}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                    edge="end"
+                                                >
+                                                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                            backgroundColor: '#f8f9fa'
+                                        }
+                                    }}
+                                />
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Button
+                                    type="submit"
+                                    fullWidth
+                                    variant="contained"
+                                    size="large"
+                                    disabled={isLoading}
+                                    sx={{
+                                        backgroundColor: '#06C167',
+                                        py: 1.5,
+                                        fontSize: '1.1rem',
+                                        fontWeight: 600,
+                                        borderRadius: 2,
+                                        mt: 3,
+                                        '&:hover': { backgroundColor: '#048A47' }
+                                    }}
+                                >
+                                    {isLoading ? 'Creating Account…' : 'Create Account'}
+                                </Button>
+                            </Grid>
+                        </Grid>
+
+                        <Box sx={{ textAlign: 'center', mt: 4 }}>
+                            <Typography variant="body2" sx={{ color: '#718096' }}>
+                                Already have an account?{' '}
+                                <Link
+                                    component={RouterLink}
+                                    to="/login"
+                                    sx={{
+                                        color: '#06C167',
+                                        fontWeight: 600,
+                                        textDecoration: 'none',
+                                        '&:hover': { textDecoration: 'underline' }
+                                    }}
+                                >
+                                    Sign in
+                                </Link>
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Paper>
             </Container>
         </div>
     );

@@ -142,7 +142,7 @@ function CustomerInfo() {
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
             <Navbar/>
             
-            <Container maxWidth="md" sx={{ py: 4 }}>
+            <Container maxWidth="lg" sx={{ py: 4 }}>
                 {/* Header */}
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                     <IconButton 
@@ -163,13 +163,15 @@ function CustomerInfo() {
                 </Box>
 
                 <Grid container spacing={4}>
+                    {/* Customer Information Card */}
                     <Grid item xs={12} md={8}>
                         <Paper 
                             sx={{ 
                                 p: 4, 
                                 borderRadius: 3, 
                                 backgroundColor: 'white',
-                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                                height: 'fit-content'
                             }}
                         >
                             {!editing ? (
@@ -371,7 +373,7 @@ function CustomerInfo() {
                         </Paper>
                     </Grid>
 
-                    {/* Summary Card */}
+                    {/* Next Step Card - Now in the same row */}
                     <Grid item xs={12} md={4}>
                         <Paper 
                             sx={{ 
@@ -380,7 +382,8 @@ function CustomerInfo() {
                                 backgroundColor: 'white',
                                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
                                 position: 'sticky',
-                                top: 100
+                                top: 100,
+                                height: 'fit-content'
                             }}
                         >
                             <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#2d3748' }}>

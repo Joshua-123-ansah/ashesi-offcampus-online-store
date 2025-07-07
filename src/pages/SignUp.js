@@ -11,7 +11,9 @@ import {
     Alert,
     Grid,
     InputAdornment,
-    IconButton
+    IconButton,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import { Visibility, VisibilityOff, Person, Email, Phone, Home as HomeIcon, Lock } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
@@ -19,6 +21,9 @@ import { Link as RouterLink } from 'react-router-dom';
 import api from '../api';
 
 function SignUp() {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -103,28 +108,47 @@ function SignUp() {
         return (
             <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
                 <Navbar />
-                <Container maxWidth="sm" sx={{ py: 6 }}>
+                <Container 
+                    maxWidth="sm" 
+                    sx={{ 
+                        py: { xs: 4, sm: 6 },
+                        px: { xs: 2, sm: 3 }
+                    }}
+                >
                     <Paper
                         elevation={0}
                         sx={{
-                            p: 6,
-                            borderRadius: 3,
+                            p: { xs: 4, sm: 6 },
+                            borderRadius: { xs: 2, sm: 3 },
                             backgroundColor: 'white',
                             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
                             textAlign: 'center'
                         }}
                     >
                         <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                            <Typography 
+                                variant="h6" 
+                                sx={{ 
+                                    fontWeight: 600, 
+                                    mb: 1,
+                                    fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                }}
+                            >
                                 Account Created Successfully!
                             </Typography>
-                            <Typography>
+                            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                                 We've sent a verification link to <strong>{formData.email}</strong>.
                                 Please check your inbox and click the link to activate your account.
                             </Typography>
                         </Alert>
                         
-                        <Typography variant="body1" sx={{ mb: 3 }}>
+                        <Typography 
+                            variant="body1" 
+                            sx={{ 
+                                mb: 3,
+                                fontSize: { xs: '0.9rem', sm: '1rem' }
+                            }}
+                        >
                             Once you've verified your email, you can{' '}
                             <Link
                                 component={RouterLink}
@@ -149,40 +173,62 @@ function SignUp() {
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
             <Navbar />
             
-            <Container maxWidth="md" sx={{ py: 6 }}>
+            <Container 
+                maxWidth="md" 
+                sx={{ 
+                    py: { xs: 4, sm: 6 },
+                    px: { xs: 2, sm: 3 }
+                }}
+            >
                 <Paper
                     elevation={0}
                     sx={{
-                        p: 6,
-                        borderRadius: 3,
+                        p: { xs: 4, sm: 6 },
+                        borderRadius: { xs: 2, sm: 3 },
                         backgroundColor: 'white',
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
                     }}
                 >
-                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                    <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 4 } }}>
                         <Typography
                             variant="h3"
                             sx={{
                                 fontWeight: 700,
                                 color: '#2d3748',
-                                mb: 1
+                                mb: 1,
+                                fontSize: { 
+                                    xs: '1.75rem', 
+                                    sm: '2.25rem', 
+                                    md: '2.5rem' 
+                                }
                             }}
                         >
                             Create Account
                         </Typography>
                         <Typography
                             variant="body1"
-                            sx={{ color: '#718096', fontSize: '1.1rem' }}
+                            sx={{ 
+                                color: '#718096', 
+                                fontSize: { xs: '1rem', sm: '1.1rem' }
+                            }}
                         >
                             Join Ashesi Eats and get your favorite meals delivered
                         </Typography>
                     </Box>
 
                     <Box component="form" onSubmit={handleSubmit}>
-                        <Grid container spacing={3}>
+                        <Grid container spacing={{ xs: 2, sm: 3 }}>
                             {/* Personal Information */}
                             <Grid item xs={12}>
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748' }}>
+                                <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                        fontWeight: 600, 
+                                        mb: 2, 
+                                        color: '#2d3748',
+                                        fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                    }}
+                                >
                                     Personal Information
                                 </Typography>
                             </Grid>
@@ -303,7 +349,16 @@ function SignUp() {
 
                             {/* Address Information */}
                             <Grid item xs={12}>
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748', mt: 2 }}>
+                                <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                        fontWeight: 600, 
+                                        mb: 2, 
+                                        color: '#2d3748', 
+                                        mt: 2,
+                                        fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                    }}
+                                >
                                     Delivery Address
                                 </Typography>
                             </Grid>
@@ -351,7 +406,16 @@ function SignUp() {
 
                             {/* Password */}
                             <Grid item xs={12}>
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748', mt: 2 }}>
+                                <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                        fontWeight: 600, 
+                                        mb: 2, 
+                                        color: '#2d3748', 
+                                        mt: 2,
+                                        fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                    }}
+                                >
                                     Security
                                 </Typography>
                             </Grid>
@@ -395,7 +459,7 @@ function SignUp() {
                                         sx={{
                                             color: passwordValid ? '#06C167' : '#e53e3e',
                                             mt: 1,
-                                            fontSize: '0.875rem'
+                                            fontSize: { xs: '0.8rem', sm: '0.875rem' }
                                         }}
                                     >
                                         {passwordValid
@@ -446,11 +510,11 @@ function SignUp() {
                                     disabled={isLoading}
                                     sx={{
                                         backgroundColor: '#06C167',
-                                        py: 1.5,
-                                        fontSize: '1.1rem',
+                                        py: { xs: 1.2, sm: 1.5 },
+                                        fontSize: { xs: '1rem', sm: '1.1rem' },
                                         fontWeight: 600,
                                         borderRadius: 2,
-                                        mt: 3,
+                                        mt: { xs: 2, sm: 3 },
                                         '&:hover': { backgroundColor: '#048A47' }
                                     }}
                                 >
@@ -459,8 +523,14 @@ function SignUp() {
                             </Grid>
                         </Grid>
 
-                        <Box sx={{ textAlign: 'center', mt: 4 }}>
-                            <Typography variant="body2" sx={{ color: '#718096' }}>
+                        <Box sx={{ textAlign: 'center', mt: { xs: 3, sm: 4 } }}>
+                            <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                    color: '#718096',
+                                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                                }}
+                            >
                                 Already have an account?{' '}
                                 <Link
                                     component={RouterLink}

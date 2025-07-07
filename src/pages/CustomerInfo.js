@@ -17,7 +17,9 @@ import {
     Chip,
     Avatar,
     Fade,
-    Slide
+    Slide,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import { 
     Edit, 
@@ -40,6 +42,9 @@ import Loader from '../components/Loader';
 function CustomerInfo() {
     const navigate = useNavigate();
     const location = useLocation();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg'));
 
     // Try location.state first, then localStorage
     const storedCart = JSON.parse(localStorage.getItem('cart') || 'null');
@@ -155,36 +160,64 @@ function CustomerInfo() {
                 sx={{
                     background: 'linear-gradient(135deg, #06C167 0%, #048A47 100%)',
                     color: 'white',
-                    py: 6,
+                    py: { xs: 3, sm: 4, md: 6 },
                     position: 'relative',
                     overflow: 'hidden'
                 }}
             >
                 <Container maxWidth="lg">
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        mb: 2,
+                        px: { xs: 2, sm: 0 }
+                    }}>
                         <IconButton 
                             onClick={() => navigate(-1)}
                             sx={{ 
-                                mr: 3, 
+                                mr: { xs: 2, sm: 3 }, 
                                 color: 'white',
                                 backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.3)' }
+                                '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.3)' },
+                                width: { xs: 40, sm: 48 },
+                                height: { xs: 40, sm: 48 }
                             }}
                         >
-                            <ArrowBack />
+                            <ArrowBack sx={{ fontSize: { xs: 20, sm: 24 } }} />
                         </IconButton>
                         <Box>
-                            <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                            <Typography 
+                                variant="h3" 
+                                sx={{ 
+                                    fontWeight: 700, 
+                                    mb: 1,
+                                    fontSize: { 
+                                        xs: '1.5rem', 
+                                        sm: '2rem', 
+                                        md: '2.5rem' 
+                                    }
+                                }}
+                            >
                                 Delivery Information
                             </Typography>
-                            <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                            <Typography 
+                                variant="h6" 
+                                sx={{ 
+                                    opacity: 0.9,
+                                    fontSize: { 
+                                        xs: '0.9rem', 
+                                        sm: '1rem', 
+                                        md: '1.25rem' 
+                                    }
+                                }}
+                            >
                                 Confirm your details for a smooth delivery experience
                             </Typography>
                         </Box>
                     </Box>
                 </Container>
                 
-                {/* Decorative elements */}
+                {/* Decorative elements - Hidden on mobile */}
                 <Box
                     sx={{
                         position: 'absolute',
@@ -194,19 +227,28 @@ function CustomerInfo() {
                         height: 200,
                         borderRadius: '50%',
                         backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                        zIndex: 1
+                        zIndex: 1,
+                        display: { xs: 'none', md: 'block' }
                     }}
                 />
             </Box>
 
-            <Container maxWidth="xl" sx={{ py: 6, mt: -4, position: 'relative', zIndex: 2 }}>
-                <Grid container spacing={4}>
+            <Container 
+                maxWidth="xl" 
+                sx={{ 
+                    py: { xs: 3, sm: 4, md: 6 }, 
+                    mt: { xs: -2, sm: -3, md: -4 }, 
+                    position: 'relative', 
+                    zIndex: 2 
+                }}
+            >
+                <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
                     {/* Main Content */}
-                    <Grid item xs={12} lg={8}>
+                    <Grid item xs={12} lg={isMobile ? 12 : 8}>
                         <Fade in timeout={600}>
                             <Paper 
                                 sx={{ 
-                                    borderRadius: 4, 
+                                    borderRadius: { xs: 3, sm: 4 }, 
                                     backgroundColor: 'white',
                                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
                                     overflow: 'hidden'
@@ -216,24 +258,45 @@ function CustomerInfo() {
                                 <Box
                                     sx={{
                                         background: 'linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%)',
-                                        p: 4,
+                                        p: { xs: 3, sm: 4 },
                                         borderBottom: '1px solid #e2e8f0'
                                     }}
                                 >
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        alignItems: 'center',
+                                        flexDirection: { xs: 'column', sm: 'row' },
+                                        gap: { xs: 2, sm: 0 }
+                                    }}>
+                                        <Box sx={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center',
+                                            textAlign: { xs: 'center', sm: 'left' }
+                                        }}>
                                             <Avatar
                                                 sx={{
-                                                    width: 56,
-                                                    height: 56,
+                                                    width: { xs: 48, sm: 56 },
+                                                    height: { xs: 48, sm: 56 },
                                                     backgroundColor: '#06C167',
-                                                    mr: 3
+                                                    mr: { xs: 2, sm: 3 }
                                                 }}
                                             >
-                                                <Person sx={{ fontSize: 28 }} />
+                                                <Person sx={{ fontSize: { xs: 24, sm: 28 } }} />
                                             </Avatar>
                                             <Box>
-                                                <Typography variant="h5" sx={{ fontWeight: 700, color: '#2d3748', mb: 0.5 }}>
+                                                <Typography 
+                                                    variant="h5" 
+                                                    sx={{ 
+                                                        fontWeight: 700, 
+                                                        color: '#2d3748', 
+                                                        mb: 0.5,
+                                                        fontSize: { 
+                                                            xs: '1.25rem', 
+                                                            sm: '1.5rem' 
+                                                        }
+                                                    }}
+                                                >
                                                     {editing ? 'Update Information' : 'Your Profile'}
                                                 </Typography>
                                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -254,9 +317,10 @@ function CustomerInfo() {
                                                     borderColor: '#06C167',
                                                     color: '#06C167',
                                                     borderRadius: 3,
-                                                    px: 3,
-                                                    py: 1.5,
+                                                    px: { xs: 2, sm: 3 },
+                                                    py: { xs: 1, sm: 1.5 },
                                                     fontWeight: 600,
+                                                    fontSize: { xs: '0.875rem', sm: '1rem' },
                                                     '&:hover': {
                                                         borderColor: '#048A47',
                                                         backgroundColor: 'rgba(6, 193, 103, 0.1)'
@@ -270,41 +334,87 @@ function CustomerInfo() {
                                 </Box>
 
                                 {/* Content */}
-                                <Box sx={{ p: 4 }}>
+                                <Box sx={{ p: { xs: 3, sm: 4 } }}>
                                     {!editing ? (
                                         <Slide direction="right" in={!editing} timeout={400}>
-                                            <Stack spacing={4}>
+                                            <Stack spacing={{ xs: 3, sm: 4 }}>
                                                 {/* Personal Info Section */}
                                                 <Box>
-                                                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#2d3748' }}>
+                                                    <Typography 
+                                                        variant="h6" 
+                                                        sx={{ 
+                                                            fontWeight: 600, 
+                                                            mb: 3, 
+                                                            color: '#2d3748',
+                                                            fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                                        }}
+                                                    >
                                                         Personal Information
                                                     </Typography>
-                                                    <Grid container spacing={3}>
+                                                    <Grid container spacing={{ xs: 2, sm: 3 }}>
                                                         <Grid item xs={12} md={6}>
-                                                            <Card sx={{ backgroundColor: '#f8f9fa', boxShadow: 'none', border: '1px solid #e2e8f0' }}>
-                                                                <CardContent sx={{ p: 3 }}>
+                                                            <Card sx={{ 
+                                                                backgroundColor: '#f8f9fa', 
+                                                                boxShadow: 'none', 
+                                                                border: '1px solid #e2e8f0',
+                                                                height: '100%'
+                                                            }}>
+                                                                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                                                                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                                                                         <Person sx={{ color: '#06C167', mr: 2 }} />
-                                                                        <Typography variant="body2" sx={{ color: '#718096', fontWeight: 600 }}>
+                                                                        <Typography 
+                                                                            variant="body2" 
+                                                                            sx={{ 
+                                                                                color: '#718096', 
+                                                                                fontWeight: 600,
+                                                                                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                                            }}
+                                                                        >
                                                                             FULL NAME
                                                                         </Typography>
                                                                     </Box>
-                                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
+                                                                    <Typography 
+                                                                        variant="h6" 
+                                                                        sx={{ 
+                                                                            fontWeight: 600, 
+                                                                            color: '#2d3748',
+                                                                            fontSize: { xs: '1rem', sm: '1.25rem' }
+                                                                        }}
+                                                                    >
                                                                         {initialInfo.name}
                                                                     </Typography>
                                                                 </CardContent>
                                                             </Card>
                                                         </Grid>
                                                         <Grid item xs={12} md={6}>
-                                                            <Card sx={{ backgroundColor: '#f8f9fa', boxShadow: 'none', border: '1px solid #e2e8f0' }}>
-                                                                <CardContent sx={{ p: 3 }}>
+                                                            <Card sx={{ 
+                                                                backgroundColor: '#f8f9fa', 
+                                                                boxShadow: 'none', 
+                                                                border: '1px solid #e2e8f0',
+                                                                height: '100%'
+                                                            }}>
+                                                                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                                                                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                                                                         <Phone sx={{ color: '#06C167', mr: 2 }} />
-                                                                        <Typography variant="body2" sx={{ color: '#718096', fontWeight: 600 }}>
+                                                                        <Typography 
+                                                                            variant="body2" 
+                                                                            sx={{ 
+                                                                                color: '#718096', 
+                                                                                fontWeight: 600,
+                                                                                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                                            }}
+                                                                        >
                                                                             PHONE NUMBER
                                                                         </Typography>
                                                                     </Box>
-                                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
+                                                                    <Typography 
+                                                                        variant="h6" 
+                                                                        sx={{ 
+                                                                            fontWeight: 600, 
+                                                                            color: '#2d3748',
+                                                                            fontSize: { xs: '1rem', sm: '1.25rem' }
+                                                                        }}
+                                                                    >
                                                                         {initialInfo.mobile}
                                                                     </Typography>
                                                                 </CardContent>
@@ -317,7 +427,15 @@ function CustomerInfo() {
 
                                                 {/* Delivery Address Section */}
                                                 <Box>
-                                                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#2d3748' }}>
+                                                    <Typography 
+                                                        variant="h6" 
+                                                        sx={{ 
+                                                            fontWeight: 600, 
+                                                            mb: 3, 
+                                                            color: '#2d3748',
+                                                            fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                                        }}
+                                                    >
                                                         Delivery Address
                                                     </Typography>
                                                     <Card 
@@ -327,17 +445,53 @@ function CustomerInfo() {
                                                             boxShadow: 'none'
                                                         }}
                                                     >
-                                                        <CardContent sx={{ p: 4 }}>
-                                                            <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                                                                <LocationOn sx={{ color: '#06C167', mr: 3, mt: 0.5, fontSize: 28 }} />
+                                                        <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+                                                            <Box sx={{ 
+                                                                display: 'flex', 
+                                                                alignItems: 'flex-start',
+                                                                flexDirection: { xs: 'column', sm: 'row' },
+                                                                gap: { xs: 2, sm: 0 }
+                                                            }}>
+                                                                <LocationOn sx={{ 
+                                                                    color: '#06C167', 
+                                                                    mr: { xs: 0, sm: 3 }, 
+                                                                    mt: 0.5, 
+                                                                    fontSize: { xs: 24, sm: 28 }
+                                                                }} />
                                                                 <Box sx={{ flexGrow: 1 }}>
-                                                                    <Typography variant="body2" sx={{ color: '#718096', fontWeight: 600, mb: 1 }}>
+                                                                    <Typography 
+                                                                        variant="body2" 
+                                                                        sx={{ 
+                                                                            color: '#718096', 
+                                                                            fontWeight: 600, 
+                                                                            mb: 1,
+                                                                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                                        }}
+                                                                    >
                                                                         DELIVERY LOCATION
                                                                     </Typography>
-                                                                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#2d3748', mb: 1 }}>
+                                                                    <Typography 
+                                                                        variant="h5" 
+                                                                        sx={{ 
+                                                                            fontWeight: 700, 
+                                                                            color: '#2d3748', 
+                                                                            mb: 1,
+                                                                            fontSize: { 
+                                                                                xs: '1.1rem', 
+                                                                                sm: '1.25rem', 
+                                                                                md: '1.5rem' 
+                                                                            }
+                                                                        }}
+                                                                    >
                                                                         {initialInfo.hostelOrOffice}
                                                                     </Typography>
-                                                                    <Typography variant="h6" sx={{ color: '#718096' }}>
+                                                                    <Typography 
+                                                                        variant="h6" 
+                                                                        sx={{ 
+                                                                            color: '#718096',
+                                                                            fontSize: { xs: '1rem', sm: '1.1rem' }
+                                                                        }}
+                                                                    >
                                                                         Room {initialInfo.roomOrOfficeNumber}
                                                                     </Typography>
                                                                     <Chip
@@ -347,7 +501,8 @@ function CustomerInfo() {
                                                                             mt: 2,
                                                                             backgroundColor: '#06C167',
                                                                             color: 'white',
-                                                                            fontWeight: 600
+                                                                            fontWeight: 600,
+                                                                            fontSize: { xs: '0.7rem', sm: '0.75rem' }
                                                                         }}
                                                                     />
                                                                 </Box>
@@ -359,12 +514,19 @@ function CustomerInfo() {
                                         </Slide>
                                     ) : (
                                         <Slide direction="left" in={editing} timeout={400}>
-                                            <Stack spacing={4}>
-                                                <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
+                                            <Stack spacing={{ xs: 3, sm: 4 }}>
+                                                <Typography 
+                                                    variant="h6" 
+                                                    sx={{ 
+                                                        fontWeight: 600, 
+                                                        color: '#2d3748',
+                                                        fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                                    }}
+                                                >
                                                     Update Your Information
                                                 </Typography>
                                                 
-                                                <Grid container spacing={3}>
+                                                <Grid container spacing={{ xs: 2, sm: 3 }}>
                                                     <Grid item xs={12}>
                                                         <TextField
                                                             required
@@ -468,7 +630,12 @@ function CustomerInfo() {
                                                     </Grid>
                                                 </Grid>
 
-                                                <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
+                                                <Box sx={{ 
+                                                    display: 'flex', 
+                                                    gap: 2, 
+                                                    pt: 2,
+                                                    flexDirection: { xs: 'column', sm: 'row' }
+                                                }}>
                                                     <Button
                                                         variant="contained"
                                                         startIcon={<Save />}
@@ -511,13 +678,17 @@ function CustomerInfo() {
                         </Fade>
                     </Grid>
 
-                    {/* Sidebar */}
+                    {/* Sidebar - Stack below on mobile */}
                     <Grid item xs={12} lg={4}>
-                        <Box sx={{ position: 'sticky', top: 100 }}>
+                        <Box sx={{ 
+                            position: { xs: 'static', lg: 'sticky' }, 
+                            top: 100,
+                            mt: { xs: 2, lg: 0 }
+                        }}>
                             <Fade in timeout={800}>
                                 <Paper 
                                     sx={{ 
-                                        borderRadius: 4, 
+                                        borderRadius: { xs: 3, sm: 4 }, 
                                         backgroundColor: 'white',
                                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
                                         overflow: 'hidden'
@@ -528,42 +699,71 @@ function CustomerInfo() {
                                         sx={{
                                             background: 'linear-gradient(135deg, #06C167 0%, #048A47 100%)',
                                             color: 'white',
-                                            p: 4,
+                                            p: { xs: 3, sm: 4 },
                                             textAlign: 'center'
                                         }}
                                     >
-                                        <CheckCircle sx={{ fontSize: 48, mb: 2 }} />
-                                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                                        <CheckCircle sx={{ fontSize: { xs: 40, sm: 48 }, mb: 2 }} />
+                                        <Typography 
+                                            variant="h6" 
+                                            sx={{ 
+                                                fontWeight: 700, 
+                                                mb: 1,
+                                                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                            }}
+                                        >
                                             Almost Ready!
                                         </Typography>
-                                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                                        <Typography 
+                                            variant="body2" 
+                                            sx={{ 
+                                                opacity: 0.9,
+                                                fontSize: { xs: '0.875rem', sm: '1rem' }
+                                            }}
+                                        >
                                             Confirm your details to proceed
                                         </Typography>
                                     </Box>
 
-                                    <Box sx={{ p: 4 }}>
+                                    <Box sx={{ p: { xs: 3, sm: 4 } }}>
                                         {/* Progress Steps */}
-                                        <Stack spacing={3} sx={{ mb: 4 }}>
+                                        <Stack spacing={{ xs: 2, sm: 3 }} sx={{ mb: 4 }}>
                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                 <Box
                                                     sx={{
-                                                        width: 32,
-                                                        height: 32,
+                                                        width: { xs: 28, sm: 32 },
+                                                        height: { xs: 28, sm: 32 },
                                                         borderRadius: '50%',
                                                         backgroundColor: '#06C167',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        mr: 3
+                                                        mr: { xs: 2, sm: 3 }
                                                     }}
                                                 >
-                                                    <CheckCircle sx={{ color: 'white', fontSize: 20 }} />
+                                                    <CheckCircle sx={{ 
+                                                        color: 'white', 
+                                                        fontSize: { xs: 16, sm: 20 } 
+                                                    }} />
                                                 </Box>
                                                 <Box>
-                                                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#2d3748' }}>
+                                                    <Typography 
+                                                        variant="body1" 
+                                                        sx={{ 
+                                                            fontWeight: 600, 
+                                                            color: '#2d3748',
+                                                            fontSize: { xs: '0.9rem', sm: '1rem' }
+                                                        }}
+                                                    >
                                                         Cart Ready
                                                     </Typography>
-                                                    <Typography variant="body2" sx={{ color: '#718096' }}>
+                                                    <Typography 
+                                                        variant="body2" 
+                                                        sx={{ 
+                                                            color: '#718096',
+                                                            fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                                                        }}
+                                                    >
                                                         Items selected
                                                     </Typography>
                                                 </Box>
@@ -572,23 +772,42 @@ function CustomerInfo() {
                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                 <Box
                                                     sx={{
-                                                        width: 32,
-                                                        height: 32,
+                                                        width: { xs: 28, sm: 32 },
+                                                        height: { xs: 28, sm: 32 },
                                                         borderRadius: '50%',
                                                         backgroundColor: '#06C167',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        mr: 3
+                                                        mr: { xs: 2, sm: 3 }
                                                     }}
                                                 >
-                                                    <Typography sx={{ color: 'white', fontWeight: 700 }}>2</Typography>
+                                                    <Typography sx={{ 
+                                                        color: 'white', 
+                                                        fontWeight: 700,
+                                                        fontSize: { xs: '0.875rem', sm: '1rem' }
+                                                    }}>
+                                                        2
+                                                    </Typography>
                                                 </Box>
                                                 <Box>
-                                                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#2d3748' }}>
+                                                    <Typography 
+                                                        variant="body1" 
+                                                        sx={{ 
+                                                            fontWeight: 600, 
+                                                            color: '#2d3748',
+                                                            fontSize: { xs: '0.9rem', sm: '1rem' }
+                                                        }}
+                                                    >
                                                         Delivery Info
                                                     </Typography>
-                                                    <Typography variant="body2" sx={{ color: '#718096' }}>
+                                                    <Typography 
+                                                        variant="body2" 
+                                                        sx={{ 
+                                                            color: '#718096',
+                                                            fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                                                        }}
+                                                    >
                                                         Current step
                                                     </Typography>
                                                 </Box>
@@ -597,23 +816,42 @@ function CustomerInfo() {
                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                 <Box
                                                     sx={{
-                                                        width: 32,
-                                                        height: 32,
+                                                        width: { xs: 28, sm: 32 },
+                                                        height: { xs: 28, sm: 32 },
                                                         borderRadius: '50%',
                                                         backgroundColor: '#e2e8f0',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        mr: 3
+                                                        mr: { xs: 2, sm: 3 }
                                                     }}
                                                 >
-                                                    <Typography sx={{ color: '#718096', fontWeight: 700 }}>3</Typography>
+                                                    <Typography sx={{ 
+                                                        color: '#718096', 
+                                                        fontWeight: 700,
+                                                        fontSize: { xs: '0.875rem', sm: '1rem' }
+                                                    }}>
+                                                        3
+                                                    </Typography>
                                                 </Box>
                                                 <Box>
-                                                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#a0aec0' }}>
+                                                    <Typography 
+                                                        variant="body1" 
+                                                        sx={{ 
+                                                            fontWeight: 600, 
+                                                            color: '#a0aec0',
+                                                            fontSize: { xs: '0.9rem', sm: '1rem' }
+                                                        }}
+                                                    >
                                                         Place Order
                                                     </Typography>
-                                                    <Typography variant="body2" sx={{ color: '#a0aec0' }}>
+                                                    <Typography 
+                                                        variant="body2" 
+                                                        sx={{ 
+                                                            color: '#a0aec0',
+                                                            fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                                                        }}
+                                                    >
                                                         Final step
                                                     </Typography>
                                                 </Box>
@@ -632,8 +870,8 @@ function CustomerInfo() {
                                                 onClick={handleContinue}
                                                 sx={{
                                                     backgroundColor: '#06C167',
-                                                    py: 2,
-                                                    fontSize: '1.1rem',
+                                                    py: { xs: 1.5, sm: 2 },
+                                                    fontSize: { xs: '1rem', sm: '1.1rem' },
                                                     fontWeight: 700,
                                                     borderRadius: 3,
                                                     boxShadow: '0 4px 20px rgba(6, 193, 103, 0.3)',
@@ -650,7 +888,14 @@ function CustomerInfo() {
 
                                         {/* Help Section */}
                                         <Box sx={{ mt: 4, textAlign: 'center' }}>
-                                            <Typography variant="body2" sx={{ color: '#718096', mb: 2 }}>
+                                            <Typography 
+                                                variant="body2" 
+                                                sx={{ 
+                                                    color: '#718096', 
+                                                    mb: 2,
+                                                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                                                }}
+                                            >
                                                 Need help with your delivery?
                                             </Typography>
                                             <Button
@@ -660,6 +905,7 @@ function CustomerInfo() {
                                                 sx={{
                                                     color: '#06C167',
                                                     fontWeight: 600,
+                                                    fontSize: { xs: '0.875rem', sm: '1rem' },
                                                     '&:hover': { backgroundColor: 'rgba(6, 193, 103, 0.1)' }
                                                 }}
                                             >

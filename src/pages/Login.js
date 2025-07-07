@@ -10,7 +10,9 @@ import {
     Paper,
     InputAdornment,
     IconButton,
-    Alert
+    Alert,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import { Visibility, VisibilityOff, Person, Lock } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
@@ -19,6 +21,9 @@ import api from "../api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../Constants";
 
 function Login() {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -58,30 +63,44 @@ function Login() {
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
             <Navbar />
             
-            <Container maxWidth="sm" sx={{ py: 6 }}>
+            <Container 
+                maxWidth="sm" 
+                sx={{ 
+                    py: { xs: 4, sm: 6 },
+                    px: { xs: 2, sm: 3 }
+                }}
+            >
                 <Paper
                     elevation={0}
                     sx={{
-                        p: 6,
-                        borderRadius: 3,
+                        p: { xs: 4, sm: 6 },
+                        borderRadius: { xs: 2, sm: 3 },
                         backgroundColor: 'white',
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
                     }}
                 >
-                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                    <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 4 } }}>
                         <Typography
                             variant="h3"
                             sx={{
                                 fontWeight: 700,
                                 color: '#2d3748',
-                                mb: 1
+                                mb: 1,
+                                fontSize: { 
+                                    xs: '1.75rem', 
+                                    sm: '2.25rem', 
+                                    md: '2.5rem' 
+                                }
                             }}
                         >
                             Welcome Back
                         </Typography>
                         <Typography
                             variant="body1"
-                            sx={{ color: '#718096', fontSize: '1.1rem' }}
+                            sx={{ 
+                                color: '#718096', 
+                                fontSize: { xs: '1rem', sm: '1.1rem' }
+                            }}
                         >
                             Sign in to your account to continue
                         </Typography>
@@ -93,7 +112,15 @@ function Login() {
                         </Alert>
                     )}
 
-                    <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Box 
+                        component="form" 
+                        onSubmit={handleSubmit} 
+                        sx={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            gap: { xs: 2.5, sm: 3 }
+                        }}
+                    >
                         <TextField
                             required
                             fullWidth
@@ -112,7 +139,8 @@ function Login() {
                             sx={{
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: 2,
-                                    backgroundColor: '#f8f9fa'
+                                    backgroundColor: '#f8f9fa',
+                                    fontSize: { xs: '1rem', sm: '1.1rem' }
                                 }
                             }}
                         />
@@ -145,7 +173,8 @@ function Login() {
                             sx={{
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: 2,
-                                    backgroundColor: '#f8f9fa'
+                                    backgroundColor: '#f8f9fa',
+                                    fontSize: { xs: '1rem', sm: '1.1rem' }
                                 }
                             }}
                         />
@@ -158,19 +187,26 @@ function Login() {
                             disabled={loading}
                             sx={{
                                 backgroundColor: '#06C167',
-                                py: 1.5,
-                                fontSize: '1.1rem',
+                                py: { xs: 1.2, sm: 1.5 },
+                                fontSize: { xs: '1rem', sm: '1.1rem' },
                                 fontWeight: 600,
                                 borderRadius: 2,
-                                mt: 2,
+                                mt: { xs: 1, sm: 2 },
                                 '&:hover': { backgroundColor: '#048A47' }
                             }}
                         >
                             {loading ? 'Signing in…' : 'Sign In'}
                         </Button>
 
-                        <Box sx={{ textAlign: 'center', mt: 3 }}>
-                            <Typography variant="body2" sx={{ color: '#718096', mb: 2 }}>
+                        <Box sx={{ textAlign: 'center', mt: { xs: 2, sm: 3 } }}>
+                            <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                    color: '#718096', 
+                                    mb: 2,
+                                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                                }}
+                            >
                                 Don't have an account?{' '}
                                 <Link
                                     component={RouterLink}
@@ -186,7 +222,14 @@ function Login() {
                                 </Link>
                             </Typography>
                             
-                            <Typography variant="body2" sx={{ color: '#718096', mb: 2 }}>
+                            <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                    color: '#718096', 
+                                    mb: 2,
+                                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                                }}
+                            >
                                 Forgot your password?{' '}
                                 <Link
                                     component={RouterLink}
@@ -208,6 +251,7 @@ function Login() {
                                 sx={{
                                     color: '#718096',
                                     textDecoration: 'none',
+                                    fontSize: { xs: '0.875rem', sm: '1rem' },
                                     '&:hover': { color: '#06C167' }
                                 }}
                             >

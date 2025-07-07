@@ -15,7 +15,9 @@ import {
     Button,
     Chip,
     InputAdornment,
-    Fab
+    Fab,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import {
     Add,
@@ -33,6 +35,10 @@ const DEFAULT_IMAGE = "https://images.pexels.com/photos/1640777/pexels-photo-164
 
 function Shop() {
     const navigate = useNavigate();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
+    
     const [search, setSearch] = useState("");
     const [cart, setCart] = useState({});
     const [foodItems, setFoodItems] = useState([]);
@@ -102,40 +108,70 @@ function Shop() {
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     color: 'white',
-                    py: 6
+                    py: { xs: 3, sm: 4, md: 6 }
                 }}
             >
                 <Container maxWidth="lg">
-                    <Typography variant="h2" sx={{ mb: 1, fontWeight: 700 }}>
-                        Cassa Bella Cuisine
-                    </Typography>
-                    <Typography variant="h6" sx={{ mb: 2, opacity: 0.9 }}>
-                        Authentic local dishes & international cuisine
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Star sx={{ color: '#FFD700', mr: 0.5 }} />
-                            <Typography sx={{ fontWeight: 600 }}>4.8</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <AccessTime sx={{ mr: 0.5 }} />
-                            <Typography>20-30 min</Typography>
-                        </Box>
-                        <Chip
-                            label="Free Delivery"
-                            sx={{
-                                backgroundColor: '#06C167',
-                                color: 'white',
-                                fontWeight: 600
+                    <Box sx={{ px: { xs: 2, sm: 0 } }}>
+                        <Typography 
+                            variant="h2" 
+                            sx={{ 
+                                mb: 1, 
+                                fontWeight: 700,
+                                fontSize: { 
+                                    xs: '1.75rem', 
+                                    sm: '2.5rem', 
+                                    md: '3rem' 
+                                }
                             }}
-                        />
+                        >
+                            Cassa Bella Cuisine
+                        </Typography>
+                        <Typography 
+                            variant="h6" 
+                            sx={{ 
+                                mb: 2, 
+                                opacity: 0.9,
+                                fontSize: { 
+                                    xs: '1rem', 
+                                    sm: '1.1rem', 
+                                    md: '1.25rem' 
+                                }
+                            }}
+                        >
+                            Authentic local dishes & international cuisine
+                        </Typography>
+                        <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: { xs: 2, sm: 3 },
+                            flexWrap: 'wrap'
+                        }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Star sx={{ color: '#FFD700', mr: 0.5 }} />
+                                <Typography sx={{ fontWeight: 600 }}>4.8</Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <AccessTime sx={{ mr: 0.5 }} />
+                                <Typography>20-30 min</Typography>
+                            </Box>
+                            <Chip
+                                label="Free Delivery"
+                                sx={{
+                                    backgroundColor: '#06C167',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                }}
+                            />
+                        </Box>
                     </Box>
                 </Container>
             </Box>
 
-            <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 4 } }}>
                 {/* Search Bar */}
-                <Box sx={{ mb: 4 }}>
+                <Box sx={{ mb: { xs: 3, sm: 4 }, px: { xs: 2, sm: 0 } }}>
                     <TextField
                         fullWidth
                         placeholder="Search for dishes..."
@@ -149,7 +185,7 @@ function Shop() {
                             ),
                         }}
                         sx={{
-                            maxWidth: 500,
+                            maxWidth: { xs: '100%', sm: 500 },
                             '& .MuiOutlinedInput-root': {
                                 backgroundColor: 'white',
                                 borderRadius: 2,
@@ -159,130 +195,169 @@ function Shop() {
                 </Box>
 
                 {/* Menu Items */}
-                <Typography variant="h4" sx={{ mb: 3, color: '#2d3748', fontWeight: 600 }}>
-                    Menu ({filtered.length} items)
-                </Typography>
+                <Box sx={{ px: { xs: 2, sm: 0 } }}>
+                    <Typography 
+                        variant="h4" 
+                        sx={{ 
+                            mb: { xs: 2, sm: 3 }, 
+                            color: '#2d3748', 
+                            fontWeight: 600,
+                            fontSize: { 
+                                xs: '1.5rem', 
+                                sm: '1.75rem', 
+                                md: '2rem' 
+                            }
+                        }}
+                    >
+                        Menu ({filtered.length} items)
+                    </Typography>
 
-                <Grid container spacing={3}>
-                    {filtered.map(product => (
-                        <Grid item xs={12} sm={6} md={4} key={product.id}>
-                            <Card
-                                sx={{
-                                    height: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    borderRadius: 3,
-                                    overflow: 'hidden',
-                                    transition: 'all 0.3s ease',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.15)'
-                                    }
-                                }}
-                            >
-                                <CardMedia
-                                    component="img"
-                                    height="200"
-                                    image={product.image}
-                                    alt={product.name}
-                                    onError={e => {
-                                        e.target.onerror = null;
-                                        e.target.src = DEFAULT_IMAGE;
+                    <Grid container spacing={{ xs: 2, sm: 3 }}>
+                        {filtered.map(product => (
+                            <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+                                <Card
+                                    sx={{
+                                        height: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        borderRadius: { xs: 2, sm: 3 },
+                                        overflow: 'hidden',
+                                        transition: 'all 0.3s ease',
+                                        '&:hover': {
+                                            transform: 'translateY(-4px)',
+                                            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.15)'
+                                        }
                                     }}
-                                    sx={{ objectFit: 'cover' }}
-                                />
-                                
-                                <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                                    <Typography
-                                        variant="h6"
-                                        sx={{
-                                            mb: 1,
-                                            fontWeight: 600,
-                                            color: '#2d3748',
-                                            lineHeight: 1.3
+                                >
+                                    <CardMedia
+                                        component="img"
+                                        height={isMobile ? "160" : isTablet ? "180" : "200"}
+                                        image={product.image}
+                                        alt={product.name}
+                                        onError={e => {
+                                            e.target.onerror = null;
+                                            e.target.src = DEFAULT_IMAGE;
                                         }}
-                                    >
-                                        {product.name}
-                                    </Typography>
+                                        sx={{ objectFit: 'cover' }}
+                                    />
                                     
-                                    <Typography
-                                        variant="h5"
-                                        sx={{
-                                            color: '#06C167',
-                                            fontWeight: 700,
-                                            mb: 2
-                                        }}
-                                    >
-                                        ${product.price}
-                                    </Typography>
-                                </CardContent>
-
-                                <CardActions sx={{ p: 3, pt: 0 }}>
-                                    {!cart[product.id] ? (
-                                        <Button
-                                            fullWidth
-                                            variant="contained"
-                                            startIcon={<Add />}
-                                            onClick={() => handleAdd(product.id)}
+                                    <CardContent sx={{ 
+                                        flexGrow: 1, 
+                                        p: { xs: 2, sm: 3 }
+                                    }}>
+                                        <Typography
+                                            variant="h6"
                                             sx={{
-                                                backgroundColor: '#06C167',
-                                                py: 1.5,
-                                                borderRadius: 2,
+                                                mb: 1,
                                                 fontWeight: 600,
-                                                '&:hover': {
-                                                    backgroundColor: '#048A47'
+                                                color: '#2d3748',
+                                                lineHeight: 1.3,
+                                                fontSize: { 
+                                                    xs: '1rem', 
+                                                    sm: '1.1rem', 
+                                                    md: '1.25rem' 
                                                 }
                                             }}
                                         >
-                                            Add to Cart
-                                        </Button>
-                                    ) : (
-                                        <Box
+                                            {product.name}
+                                        </Typography>
+                                        
+                                        <Typography
+                                            variant="h5"
                                             sx={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'space-between',
-                                                width: '100%',
-                                                backgroundColor: '#f8f9fa',
-                                                borderRadius: 2,
-                                                p: 1
+                                                color: '#06C167',
+                                                fontWeight: 700,
+                                                mb: 2,
+                                                fontSize: { 
+                                                    xs: '1.1rem', 
+                                                    sm: '1.25rem', 
+                                                    md: '1.3rem' 
+                                                }
                                             }}
                                         >
-                                            <IconButton
-                                                onClick={() => handleQty(product.id, -1)}
-                                                sx={{
-                                                    backgroundColor: 'white',
-                                                    color: '#06C167',
-                                                    '&:hover': { backgroundColor: '#f0f0f0' }
-                                                }}
-                                            >
-                                                <Remove />
-                                            </IconButton>
-                                            
-                                            <Typography
-                                                variant="h6"
-                                                sx={{ fontWeight: 600, color: '#2d3748' }}
-                                            >
-                                                {cart[product.id]}
-                                            </Typography>
-                                            
-                                            <IconButton
-                                                onClick={() => handleQty(product.id, +1)}
+                                            ${product.price}
+                                        </Typography>
+                                    </CardContent>
+
+                                    <CardActions sx={{ 
+                                        p: { xs: 2, sm: 3 }, 
+                                        pt: 0 
+                                    }}>
+                                        {!cart[product.id] ? (
+                                            <Button
+                                                fullWidth
+                                                variant="contained"
+                                                startIcon={<Add />}
+                                                onClick={() => handleAdd(product.id)}
                                                 sx={{
                                                     backgroundColor: '#06C167',
-                                                    color: 'white',
-                                                    '&:hover': { backgroundColor: '#048A47' }
+                                                    py: { xs: 1.2, sm: 1.5 },
+                                                    borderRadius: 2,
+                                                    fontWeight: 600,
+                                                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                                                    '&:hover': {
+                                                        backgroundColor: '#048A47'
+                                                    }
                                                 }}
                                             >
-                                                <Add />
-                                            </IconButton>
-                                        </Box>
-                                    )}
-                                </CardActions>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
+                                                Add to Cart
+                                            </Button>
+                                        ) : (
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    width: '100%',
+                                                    backgroundColor: '#f8f9fa',
+                                                    borderRadius: 2,
+                                                    p: 1
+                                                }}
+                                            >
+                                                <IconButton
+                                                    onClick={() => handleQty(product.id, -1)}
+                                                    sx={{
+                                                        backgroundColor: 'white',
+                                                        color: '#06C167',
+                                                        '&:hover': { backgroundColor: '#f0f0f0' },
+                                                        width: { xs: 32, sm: 36 },
+                                                        height: { xs: 32, sm: 36 }
+                                                    }}
+                                                >
+                                                    <Remove sx={{ fontSize: { xs: 16, sm: 20 } }} />
+                                                </IconButton>
+                                                
+                                                <Typography
+                                                    variant="h6"
+                                                    sx={{ 
+                                                        fontWeight: 600, 
+                                                        color: '#2d3748',
+                                                        fontSize: { xs: '1rem', sm: '1.25rem' }
+                                                    }}
+                                                >
+                                                    {cart[product.id]}
+                                                </Typography>
+                                                
+                                                <IconButton
+                                                    onClick={() => handleQty(product.id, +1)}
+                                                    sx={{
+                                                        backgroundColor: '#06C167',
+                                                        color: 'white',
+                                                        '&:hover': { backgroundColor: '#048A47' },
+                                                        width: { xs: 32, sm: 36 },
+                                                        height: { xs: 32, sm: 36 }
+                                                    }}
+                                                >
+                                                    <Add sx={{ fontSize: { xs: 16, sm: 20 } }} />
+                                                </IconButton>
+                                            </Box>
+                                        )}
+                                    </CardActions>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                </Box>
             </Container>
 
             {/* Floating Cart Button */}
@@ -291,13 +366,14 @@ function Shop() {
                     variant="extended"
                     sx={{
                         position: 'fixed',
-                        bottom: 24,
-                        right: 24,
+                        bottom: { xs: 16, sm: 24 },
+                        right: { xs: 16, sm: 24 },
                         zIndex: 1000,
                         backgroundColor: '#06C167',
                         color: 'white',
-                        px: 3,
-                        minWidth: 200,
+                        px: { xs: 2, sm: 3 },
+                        minWidth: { xs: 160, sm: 200 },
+                        fontSize: { xs: '0.875rem', sm: '1rem' },
                         '&:hover': {
                             backgroundColor: '#048A47',
                             transform: 'scale(1.05)'
@@ -305,7 +381,7 @@ function Shop() {
                     }}
                     onClick={() => navigate("/checkout", { state: { cart } })}
                 >
-                    <ShoppingCart sx={{ mr: 1 }} />
+                    <ShoppingCart sx={{ mr: 1, fontSize: { xs: 18, sm: 20 } }} />
                     View Cart • ${totalPrice.toFixed(2)}
                 </Fab>
             )}

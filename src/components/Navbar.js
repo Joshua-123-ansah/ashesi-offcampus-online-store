@@ -54,7 +54,9 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
     // Check authentication status on component mount
     useEffect(() => {
         checkAuthStatus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
 
     const checkAuthStatus = async () => {
         const token = localStorage.getItem(ACCESS_TOKEN);

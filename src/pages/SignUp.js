@@ -9,16 +9,37 @@ import {
     Link,
     Paper,
     Alert,
-    Grid,
     InputAdornment,
-    IconButton
+    IconButton,
+    useMediaQuery,
+    useTheme,
+    Divider,
+    Stepper,
+    Step,
+    StepLabel
 } from '@mui/material';
-import { Visibility, VisibilityOff, Person, Email, Phone, Home as HomeIcon, Lock } from '@mui/icons-material';
+import {
+    Visibility,
+    VisibilityOff,
+    Person,
+    Email,
+    Phone,
+    Home as HomeIcon,
+    Lock,
+    AccountCircle,
+    LocationOn,
+    Security
+} from '@mui/icons-material';
 import Navbar from '../components/Navbar';
 import { Link as RouterLink } from 'react-router-dom';
 import api from '../api';
 
+const steps = ['Personal Info', 'Contact Details', 'Address', 'Security'];
+
 function SignUp() {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -103,28 +124,66 @@ function SignUp() {
         return (
             <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
                 <Navbar />
-                <Container maxWidth="sm" sx={{ py: 6 }}>
+                <Container
+                    maxWidth="sm"
+                    sx={{
+                        py: { xs: 3, sm: 4, md: 6 },
+                        px: { xs: 2, sm: 3 }
+                    }}
+                >
                     <Paper
                         elevation={0}
                         sx={{
-                            p: 6,
-                            borderRadius: 3,
+                            p: { xs: 3, sm: 4, md: 6 },
+                            borderRadius: { xs: 2, sm: 3 },
                             backgroundColor: 'white',
                             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
                             textAlign: 'center'
                         }}
                     >
-                        <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                        <Box sx={{ mb: 3 }}>
+                            <AccountCircle
+                                sx={{
+                                    fontSize: { xs: 60, sm: 80 },
+                                    color: '#06C167',
+                                    mb: 2
+                                }}
+                            />
+                        </Box>
+
+                        <Alert
+                            severity="success"
+                            sx={{
+                                mb: 3,
+                                borderRadius: 2,
+                                backgroundColor: '#f0fff4',
+                                border: '1px solid #06C167'
+                            }}
+                        >
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontWeight: 600,
+                                    mb: 1,
+                                    fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                }}
+                            >
                                 Account Created Successfully!
                             </Typography>
-                            <Typography>
+                            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                                 We've sent a verification link to <strong>{formData.email}</strong>.
                                 Please check your inbox and click the link to activate your account.
                             </Typography>
                         </Alert>
 
-                        <Typography variant="body1" sx={{ mb: 3 }}>
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                mb: 3,
+                                fontSize: { xs: '0.9rem', sm: '1rem' },
+                                color: '#718096'
+                            }}
+                        >
                             Once you've verified your email, you can{' '}
                             <Link
                                 component={RouterLink}
@@ -139,6 +198,23 @@ function SignUp() {
                                 sign in here
                             </Link>
                         </Typography>
+
+                        <Button
+                            variant="contained"
+                            component={RouterLink}
+                            to="/login"
+                            sx={{
+                                backgroundColor: '#06C167',
+                                px: { xs: 3, sm: 4 },
+                                py: { xs: 1.2, sm: 1.5 },
+                                fontSize: { xs: '1rem', sm: '1.1rem' },
+                                fontWeight: 600,
+                                borderRadius: 2,
+                                '&:hover': { backgroundColor: '#048A47' }
+                            }}
+                        >
+                            Go to Sign In
+                        </Button>
                     </Paper>
                 </Container>
             </div>
@@ -149,45 +225,103 @@ function SignUp() {
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
             <Navbar />
 
-            <Container maxWidth="md" sx={{ py: 6 }}>
+            <Container
+                maxWidth="sm"
+                sx={{
+                    py: { xs: 3, sm: 4, md: 6 },
+                    px: { xs: 2, sm: 3 }
+                }}
+            >
                 <Paper
                     elevation={0}
                     sx={{
-                        p: 6,
-                        borderRadius: 3,
+                        p: { xs: 3, sm: 4, md: 6 },
+                        borderRadius: { xs: 2, sm: 3 },
                         backgroundColor: 'white',
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
                     }}
                 >
-                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                    {/* Header */}
+                    <Box sx={{ textAlign: 'center', mb: { xs: 3, sm: 4 } }}>
+                        <AccountCircle
+                            sx={{
+                                fontSize: { xs: 50, sm: 60 },
+                                color: '#06C167',
+                                mb: 2
+                            }}
+                        />
                         <Typography
                             variant="h3"
                             sx={{
                                 fontWeight: 700,
                                 color: '#2d3748',
-                                mb: 1
+                                mb: 1,
+                                fontSize: {
+                                    xs: '1.75rem',
+                                    sm: '2rem',
+                                    md: '2.25rem'
+                                }
                             }}
                         >
                             Create Account
                         </Typography>
                         <Typography
                             variant="body1"
-                            sx={{ color: '#718096', fontSize: '1.1rem' }}
+                            sx={{
+                                color: '#718096',
+                                fontSize: { xs: '1rem', sm: '1.1rem' },
+                                maxWidth: '400px',
+                                mx: 'auto'
+                            }}
                         >
-                            Join Ashesi Eats and get your favorite meals delivered
+                            Join Ashesi Eats and get your favorite meals delivered to your dorm
                         </Typography>
                     </Box>
 
+                    {/* Progress Stepper - Hidden on mobile */}
+                    {!isMobile && (
+                        <Box sx={{ mb: 4 }}>
+                            <Stepper
+                                activeStep={-1}
+                                alternativeLabel
+                                sx={{
+                                    '& .MuiStepLabel-label': {
+                                        fontSize: '0.875rem',
+                                        color: '#718096'
+                                    }
+                                }}
+                            >
+                                {steps.map((label) => (
+                                    <Step key={label}>
+                                        <StepLabel>{label}</StepLabel>
+                                    </Step>
+                                ))}
+                            </Stepper>
+                        </Box>
+                    )}
+
                     <Box component="form" onSubmit={handleSubmit}>
-                        <Grid container spacing={3}>
-                            {/* Personal Information */}
-                            <Grid item xs={12}>
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748' }}>
+                        {/* Personal Information Section */}
+                        <Box sx={{ mb: { xs: 3, sm: 4 } }}>
+                            <Box sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                mb: { xs: 2, sm: 3 }
+                            }}>
+                                <Person sx={{ color: '#06C167', mr: 1 }} />
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: '#2d3748',
+                                        fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                    }}
+                                >
                                     Personal Information
                                 </Typography>
-                            </Grid>
+                            </Box>
 
-                            <Grid item xs={12} sm={6}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 } }}>
                                 <TextField
                                     required
                                     fullWidth
@@ -195,23 +329,17 @@ function SignUp() {
                                     name="firstName"
                                     value={formData.firstName}
                                     onChange={handleChange}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <Person sx={{ color: '#718096' }} />
-                                            </InputAdornment>
-                                        ),
-                                    }}
+                                    placeholder="Enter your first name"
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2,
-                                            backgroundColor: '#f8f9fa'
+                                            backgroundColor: '#f8f9fa',
+                                            fontSize: { xs: '1rem', sm: '1.1rem' },
+                                            height: { xs: 48, sm: 56 }
                                         }
                                     }}
                                 />
-                            </Grid>
 
-                            <Grid item xs={12} sm={6}>
                                 <TextField
                                     required
                                     fullWidth
@@ -219,16 +347,17 @@ function SignUp() {
                                     name="lastName"
                                     value={formData.lastName}
                                     onChange={handleChange}
+                                    placeholder="Enter your last name"
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2,
-                                            backgroundColor: '#f8f9fa'
+                                            backgroundColor: '#f8f9fa',
+                                            fontSize: { xs: '1rem', sm: '1.1rem' },
+                                            height: { xs: 48, sm: 56 }
                                         }
                                     }}
                                 />
-                            </Grid>
 
-                            <Grid item xs={12} sm={6}>
                                 <TextField
                                     required
                                     fullWidth
@@ -236,30 +365,57 @@ function SignUp() {
                                     name="username"
                                     value={formData.username}
                                     onChange={handleChange}
+                                    placeholder="Choose a unique username"
                                     error={usernameValid === false}
                                     helperText={
                                         usernameValid === false
-                                            ? '1–150 chars: letters, digits, and @ . + - _ only.'
-                                            : ''
+                                            ? '1–150 characters: letters, digits, and @ . + - _ only'
+                                            : 'This will be used to sign in to your account'
                                     }
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2,
-                                            backgroundColor: '#f8f9fa'
+                                            backgroundColor: '#f8f9fa',
+                                            fontSize: { xs: '1rem', sm: '1.1rem' },
+                                            height: { xs: 48, sm: 56 }
                                         }
                                     }}
                                 />
-                            </Grid>
+                            </Box>
+                        </Box>
 
-                            <Grid item xs={12} sm={6}>
+                        <Divider sx={{ my: { xs: 3, sm: 4 } }} />
+
+                        {/* Contact Information Section */}
+                        <Box sx={{ mb: { xs: 3, sm: 4 } }}>
+                            <Box sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                mb: { xs: 2, sm: 3 }
+                            }}>
+                                <Email sx={{ color: '#06C167', mr: 1 }} />
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: '#2d3748',
+                                        fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                    }}
+                                >
+                                    Contact Details
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 } }}>
                                 <TextField
                                     required
                                     fullWidth
-                                    label="Email"
+                                    label="Email Address"
                                     name="email"
                                     type="email"
                                     value={formData.email}
                                     onChange={handleChange}
+                                    placeholder="your.email@ashesi.edu.gh"
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
@@ -270,13 +426,13 @@ function SignUp() {
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2,
-                                            backgroundColor: '#f8f9fa'
+                                            backgroundColor: '#f8f9fa',
+                                            fontSize: { xs: '1rem', sm: '1.1rem' },
+                                            height: { xs: 48, sm: 56 }
                                         }
                                     }}
                                 />
-                            </Grid>
 
-                            <Grid item xs={12}>
                                 <TextField
                                     required
                                     fullWidth
@@ -292,23 +448,42 @@ function SignUp() {
                                             </InputAdornment>
                                         ),
                                     }}
+                                    helperText="We'll use this to contact you about your orders"
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2,
-                                            backgroundColor: '#f8f9fa'
+                                            backgroundColor: '#f8f9fa',
+                                            fontSize: { xs: '1rem', sm: '1.1rem' },
+                                            height: { xs: 48, sm: 56 }
                                         }
                                     }}
                                 />
-                            </Grid>
+                            </Box>
+                        </Box>
 
-                            {/* Address Information */}
-                            <Grid item xs={12}>
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748', mt: 2 }}>
+                        <Divider sx={{ my: { xs: 3, sm: 4 } }} />
+
+                        {/* Address Information Section */}
+                        <Box sx={{ mb: { xs: 3, sm: 4 } }}>
+                            <Box sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                mb: { xs: 2, sm: 3 }
+                            }}>
+                                <LocationOn sx={{ color: '#06C167', mr: 1 }} />
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: '#2d3748',
+                                        fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                    }}
+                                >
                                     Delivery Address
                                 </Typography>
-                            </Grid>
+                            </Box>
 
-                            <Grid item xs={12} sm={6}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 } }}>
                                 <TextField
                                     required
                                     fullWidth
@@ -316,6 +491,7 @@ function SignUp() {
                                     name="hostelOrOfficeName"
                                     value={formData.hostelOrOfficeName}
                                     onChange={handleChange}
+                                    placeholder="e.g., New Dorm, Admin Block"
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
@@ -326,13 +502,13 @@ function SignUp() {
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2,
-                                            backgroundColor: '#f8f9fa'
+                                            backgroundColor: '#f8f9fa',
+                                            fontSize: { xs: '1rem', sm: '1.1rem' },
+                                            height: { xs: 48, sm: 56 }
                                         }
                                     }}
                                 />
-                            </Grid>
 
-                            <Grid item xs={12} sm={6}>
                                 <TextField
                                     required
                                     fullWidth
@@ -340,23 +516,43 @@ function SignUp() {
                                     name="roomOrOfficeNumber"
                                     value={formData.roomOrOfficeNumber}
                                     onChange={handleChange}
+                                    placeholder="e.g., Room 205, Office 3B"
+                                    helperText="This helps our delivery team find you quickly"
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2,
-                                            backgroundColor: '#f8f9fa'
+                                            backgroundColor: '#f8f9fa',
+                                            fontSize: { xs: '1rem', sm: '1.1rem' },
+                                            height: { xs: 48, sm: 56 }
                                         }
                                     }}
                                 />
-                            </Grid>
+                            </Box>
+                        </Box>
 
-                            {/* Password */}
-                            <Grid item xs={12}>
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748', mt: 2 }}>
-                                    Security
+                        <Divider sx={{ my: { xs: 3, sm: 4 } }} />
+
+                        {/* Security Section */}
+                        <Box sx={{ mb: { xs: 3, sm: 4 } }}>
+                            <Box sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                mb: { xs: 2, sm: 3 }
+                            }}>
+                                <Security sx={{ color: '#06C167', mr: 1 }} />
+                                <Typography
+                                    variant="h6"
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: '#2d3748',
+                                        fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                    }}
+                                >
+                                    Account Security
                                 </Typography>
-                            </Grid>
+                            </Box>
 
-                            <Grid item xs={12} sm={6}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 } }}>
                                 <TextField
                                     required
                                     fullWidth
@@ -365,6 +561,7 @@ function SignUp() {
                                     type={showPassword ? 'text' : 'password'}
                                     value={formData.password}
                                     onChange={handleChange}
+                                    placeholder="Create a strong password"
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start">
@@ -376,6 +573,7 @@ function SignUp() {
                                                 <IconButton
                                                     onClick={() => setShowPassword(!showPassword)}
                                                     edge="end"
+                                                    sx={{ color: '#718096' }}
                                                 >
                                                     {showPassword ? <VisibilityOff /> : <Visibility />}
                                                 </IconButton>
@@ -385,27 +583,27 @@ function SignUp() {
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2,
-                                            backgroundColor: '#f8f9fa'
+                                            backgroundColor: '#f8f9fa',
+                                            fontSize: { xs: '1rem', sm: '1.1rem' },
+                                            height: { xs: 48, sm: 56 }
                                         }
                                     }}
                                 />
+
                                 {formData.password && (
-                                    <Typography
-                                        variant="body2"
+                                    <Alert
+                                        severity={passwordValid ? "success" : "warning"}
                                         sx={{
-                                            color: passwordValid ? '#06C167' : '#e53e3e',
-                                            mt: 1,
-                                            fontSize: '0.875rem'
+                                            borderRadius: 2,
+                                            fontSize: { xs: '0.8rem', sm: '0.875rem' }
                                         }}
                                     >
                                         {passwordValid
-                                            ? '✓ Password meets requirements'
+                                            ? '✓ Password meets security requirements'
                                             : 'Password must be at least 8 characters with letters and numbers'}
-                                    </Typography>
+                                    </Alert>
                                 )}
-                            </Grid>
 
-                            <Grid item xs={12} sm={6}>
                                 <TextField
                                     required
                                     fullWidth
@@ -414,14 +612,20 @@ function SignUp() {
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
-                                    error={!passwordMatch}
-                                    helperText={!passwordMatch && 'Passwords do not match'}
+                                    placeholder="Re-enter your password"
+                                    error={!passwordMatch && formData.confirmPassword.length > 0}
+                                    helperText={
+                                        !passwordMatch && formData.confirmPassword.length > 0
+                                            ? 'Passwords do not match'
+                                            : ''
+                                    }
                                     InputProps={{
                                         endAdornment: (
                                             <InputAdornment position="end">
                                                 <IconButton
                                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                                     edge="end"
+                                                    sx={{ color: '#718096' }}
                                                 >
                                                     {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                                                 </IconButton>
@@ -431,36 +635,53 @@ function SignUp() {
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2,
-                                            backgroundColor: '#f8f9fa'
+                                            backgroundColor: '#f8f9fa',
+                                            fontSize: { xs: '1rem', sm: '1.1rem' },
+                                            height: { xs: 48, sm: 56 }
                                         }
                                     }}
                                 />
-                            </Grid>
+                            </Box>
+                        </Box>
 
-                            <Grid item xs={12}>
-                                <Button
-                                    type="submit"
-                                    fullWidth
-                                    variant="contained"
-                                    size="large"
-                                    disabled={isLoading}
-                                    sx={{
-                                        backgroundColor: '#06C167',
-                                        py: 1.5,
-                                        fontSize: '1.1rem',
-                                        fontWeight: 600,
-                                        borderRadius: 2,
-                                        mt: 3,
-                                        '&:hover': { backgroundColor: '#048A47' }
-                                    }}
-                                >
-                                    {isLoading ? 'Creating Account…' : 'Create Account'}
-                                </Button>
-                            </Grid>
-                        </Grid>
+                        {/* Submit Button */}
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            size="large"
+                            disabled={isLoading}
+                            sx={{
+                                backgroundColor: '#06C167',
+                                py: { xs: 1.5, sm: 2 },
+                                fontSize: { xs: '1rem', sm: '1.1rem' },
+                                fontWeight: 600,
+                                borderRadius: 2,
+                                mb: { xs: 3, sm: 4 },
+                                height: { xs: 48, sm: 56 },
+                                '&:hover': {
+                                    backgroundColor: '#048A47',
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: '0 6px 20px rgba(6, 193, 103, 0.3)'
+                                },
+                                '&:disabled': {
+                                    backgroundColor: '#a0aec0'
+                                }
+                            }}
+                        >
+                            {isLoading ? 'Creating Account…' : 'Create Account'}
+                        </Button>
 
-                        <Box sx={{ textAlign: 'center', mt: 4 }}>
-                            <Typography variant="body2" sx={{ color: '#718096' }}>
+                        {/* Footer Links */}
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    color: '#718096',
+                                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                                    mb: 2
+                                }}
+                            >
                                 Already have an account?{' '}
                                 <Link
                                     component={RouterLink}
@@ -472,9 +693,22 @@ function SignUp() {
                                         '&:hover': { textDecoration: 'underline' }
                                     }}
                                 >
-                                    Sign in
+                                    Sign in here
                                 </Link>
                             </Typography>
+
+                            <Link
+                                component={RouterLink}
+                                to="/"
+                                sx={{
+                                    color: '#718096',
+                                    textDecoration: 'none',
+                                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                                    '&:hover': { color: '#06C167' }
+                                }}
+                            >
+                                ← Back to Home
+                            </Link>
                         </Box>
                     </Box>
                 </Paper>

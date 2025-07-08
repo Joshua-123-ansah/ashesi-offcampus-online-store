@@ -3,7 +3,7 @@ import axios from "axios";
 import {ACCESS_TOKEN} from "./Constants";
 
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL
+    baseURL: process.env.REACT_APP_API_URL_PROD
 })
 
 api.interceptors.request.use((config) => {

@@ -154,7 +154,7 @@ function Checkout() {
                                                     {item.name}
                                                 </Typography>
                                                 <Typography variant="h6" sx={{ color: '#06C167', fontWeight: 600 }}>
-                                                    ${item.price}
+                                                    Ghc{item.price}
                                                 </Typography>
                                             </Box>
 
@@ -211,17 +211,17 @@ function Checkout() {
                                 <Box sx={{ mb: 3 }}>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                         <Typography>Subtotal</Typography>
-                                        <Typography>${subtotal.toFixed(2)}</Typography>
+                                        <Typography>Ghc{subtotal.toFixed(2)}</Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                         <Typography>Delivery Fee</Typography>
                                         <Typography>
-                                            {deliveryFee === 0 ? 'FREE' : `$${deliveryFee.toFixed(2)}`}
+                                            {deliveryFee === 0 ? 'FREE' : `Ghc${deliveryFee.toFixed(2)}`}
                                         </Typography>
                                     </Box>
                                     {subtotal < 20 && (
                                         <Typography variant="body2" sx={{ color: '#718096', mt: 1 }}>
-                                            Add ${(20 - subtotal).toFixed(2)} more for free delivery
+                                            Add Ghc{(20 - subtotal).toFixed(2)} more for free delivery
                                         </Typography>
                                     )}
                                 </Box>
@@ -233,7 +233,7 @@ function Checkout() {
                                         Total
                                     </Typography>
                                     <Typography variant="h6" sx={{ fontWeight: 600, color: '#06C167' }}>
-                                        ${total.toFixed(2)}
+                                        Ghc{total.toFixed(2)}
                                     </Typography>
                                 </Box>
 

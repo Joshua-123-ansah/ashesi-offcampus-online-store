@@ -274,7 +274,7 @@ function SignUp() {
                                 mx: 'auto'
                             }}
                         >
-                            Join Ashesi Eats and get your favorite meals delivered to your dorm
+                            Join Ashesi Online Market Place and get your favorite items delivered to your dorm
                         </Typography>
                     </Box>
 

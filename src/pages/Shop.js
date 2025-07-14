@@ -264,7 +264,7 @@ function Shop() {
                                         {product.name}
                                     </Typography>
                                     <Typography variant="h5" sx={{ color: '#06C167', fontWeight: 700 }}>
-                                        ${product.price}
+                                        Ghc{product.price}
                                     </Typography>
                                 </CardContent>
 
@@ -335,7 +335,7 @@ function Shop() {
                     onClick={() => navigate("/checkout", { state: { cart } })}
                 >
                     <ShoppingCart sx={{ mr: 1 }} />
-                    View Cart • ${totalPrice.toFixed(2)}
+                    View Cart • Ghc{totalPrice.toFixed(2)}
                 </Fab>
             )}
         </Box>

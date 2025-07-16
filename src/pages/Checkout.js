@@ -19,7 +19,14 @@ import api from '../api';
 function Checkout() {
     const location = useLocation();
     const navigate = useNavigate();
-    const cart = useMemo(() => location.state?.cart || {}, [location.state?.cart]);
+    // Try to get cart from navigation state first, then from localStorage
+    const cart = useMemo(() => {
+        const navCart = location.state?.cart;
+        if (navCart) return navCart;
+        
+        const storedCart = JSON.parse(localStorage.getItem('cart') || 'null');
+        return storedCart || {};
+    }, [location.state?.cart]);
 
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -224,6 +231,9 @@ function Checkout() {
                                             Add Ghc{(20 - subtotal).toFixed(2)} more for free delivery
                                         </Typography>
                                     )}
+                                    <Typography variant="body2" sx={{ color: '#D69E2E', mt: 2 }}>
+                                        Delivery to Hillside, Charlotte and UniView will attract an additional Ghc5.00
+                                    </Typography>
                                 </Box>
 
                                 <Divider sx={{ my: 2 }} />

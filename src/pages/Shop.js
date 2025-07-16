@@ -35,7 +35,11 @@ function Shop() {
     const navigate = useNavigate();
 
     const [search, setSearch] = useState("");
-    const [cart, setCart] = useState({});
+    // Initialize cart directly from localStorage
+    const [cart, setCart] = useState(() => {
+        const storedCart = JSON.parse(localStorage.getItem('cart') || 'null');
+        return storedCart || {};
+    });
     const [foodItems, setFoodItems] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -53,6 +57,11 @@ function Shop() {
         };
         fetchFoodItems();
     }, []);
+
+    // Save cart to localStorage whenever cart changes
+    useEffect(() => {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }, [cart]);
 
     if (loading) {
         return (
@@ -88,13 +97,19 @@ function Shop() {
             return { ...prev, [id]: nextQty };
         });
 
+    // Handle cart click - always use current cart from localStorage
+    const handleCartClick = () => {
+        const currentCart = JSON.parse(localStorage.getItem('cart') || 'null') || {};
+        navigate("/checkout", { state: { cart: currentCart } });
+    };
+
     return (
         <Box sx={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
             <Navbar
                 title="Cassa Bella Cuisine"
                 showCartButton
                 cartCount={totalItems}
-                onCartClick={() => navigate("/checkout", { state: { cart } })}
+                onCartClick={handleCartClick}
             />
 
             {/* Restaurant Header */}
@@ -332,7 +347,7 @@ function Shop() {
                             transform: 'scale(1.05)'
                         }
                     }}
-                    onClick={() => navigate("/checkout", { state: { cart } })}
+                    onClick={handleCartClick}
                 >
                     <ShoppingCart sx={{ mr: 1 }} />
                     View Cart • Ghc{totalPrice.toFixed(2)}

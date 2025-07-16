@@ -13,6 +13,7 @@ import NotFoundPage from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PlaceOrder from "./pages/PlaceOrder";
 import ResetPassword from "./pages/ResetPassword";
+import PaymentVerification from "./components/PaymentVerification";
 
 function RegisterAndLogout() {
     return <SignUp />;
@@ -37,7 +38,16 @@ function App() {
                   <CustomerInfo />
               </ProtectedRoute>
           } />
-          <Route path="/payment" element={<Payment />} />
+          <Route path="/payment" element={
+              <ProtectedRoute>
+                  <Payment />
+              </ProtectedRoute>
+          } />
+            <Route path="/payment/verify" element={
+                <ProtectedRoute>
+                    <PaymentVerification />
+                </ProtectedRoute>
+            } />
             <Route path="/delivery-status" element={
                 <ProtectedRoute>
                 <DeliveryStatus />

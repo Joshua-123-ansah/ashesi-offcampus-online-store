@@ -52,18 +52,23 @@ function PlaceOrder() {
         try {
             const res = await api.post('/api/orders/', { items: itemsPayload });
             const newOrderId = res.data.id;
+            const orderTotal = res.data.total_amount || 0;
 
             // persist the orderId so DeliveryStatus can read it
             localStorage.setItem('lastOrderId', newOrderId);
+            
+            // Store order data for payment
+            const orderData = {
+                orderId: newOrderId,
+                totalAmount: orderTotal
+            };
+            localStorage.setItem('currentOrder', JSON.stringify(orderData));
 
             // clear the cart
             localStorage.removeItem('cart');
-            setSuccess(true);
-
-            // navigate to static status page after a short delay
-            setTimeout(() => {
-                navigate('/delivery-status');
-            }, 2000);
+            
+            // Navigate to payment page instead of delivery status
+            navigate('/payment', { state: { orderData } });
         } catch (err) {
             console.error('Order creation failed:', err);
             setError(
@@ -190,61 +195,6 @@ function PlaceOrder() {
                         </Box>
                     )}
 
-                    {!loading && success && (
-                        <Box>
-                            <CheckCircle sx={{ fontSize: 100, color: '#06C167', mb: 3 }} />
-
-                            <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: '#2d3748' }}>
-                                Order Placed Successfully!
-                            </Typography>
-
-                            <Typography variant="body1" sx={{ color: '#718096', mb: 4, fontSize: '1.1rem' }}>
-                                Thank you for your order! You will hear from our team shortly.
-                            </Typography>
-
-                            <Card sx={{ backgroundColor: '#f0fff4', border: '1px solid #06C167', mb: 4 }}>
-                                <CardContent>
-                                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748' }}>
-                                        What's Next?
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: '#718096', mb: 2 }}>
-                                        • Our team will confirm your order
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: '#718096', mb: 2 }}>
-                                        • Your food will be prepared fresh
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: '#718096', mb: 2 }}>
-                                        • Delivery within 20-30 minutes
-                                    </Typography>
-                                    <Divider sx={{ my: 2 }} />
-                                    <Typography variant="body2" sx={{ color: '#718096' }}>
-                                        Questions? Call us at <strong>0240 235 033</strong>
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-
-                            <Button
-                                variant="outlined"
-                                size="large"
-                                onClick={() => navigate('/delivery-status')}
-                                sx={{
-                                    borderColor: '#06C167',
-                                    color: '#06C167',
-                                    px: 4,
-                                    py: 1.5,
-                                    fontSize: '1.1rem',
-                                    fontWeight: 600,
-                                    borderRadius: 2,
-                                    '&:hover': {
-                                        borderColor: '#048A47',
-                                        backgroundColor: 'rgba(6, 193, 103, 0.1)'
-                                    }
-                                }}
-                            >
-                                Track Your Order
-                            </Button>
-                        </Box>
-                    )}
                 </Paper>
             </Container>
         </div>

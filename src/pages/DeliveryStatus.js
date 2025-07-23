@@ -1,5 +1,5 @@
 // src/pages/DeliveryStatus.js
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Container,
     Box,
@@ -84,67 +84,65 @@ const getStatusMessage = (activeStep) => {
 
 function DeliveryStatus() {
     const navigate = useNavigate();
-    const [orderId] = useState(localStorage.getItem('lastOrderId'));
-    const [activeStep, setActiveStep] = useState(0);
+    const [orderId, setOrderId] = useState(null);
+    const [orderStatus, setOrderStatus] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [estimatedTime, setEstimatedTime] = useState('20-30');
 
     useEffect(() => {
-        let isMounted = true;
-
-        const fetchStatus = async () => {
-            if (!orderId) {
-                if (isMounted) {
-                    setError('Order has been delivered or there is no order to track.');
-                    setLoading(false);
-                }
-                return;
-            }
+        // Fetch the user's latest order
+        const fetchLatestOrder = async () => {
             try {
-                const res = await api.get(`/api/orders/${orderId}/status/`);
-                const { status } = res.data;
-                if (isMounted) {
-                    setActiveStep(statusMap[status] ?? 0);
-
-                    // Update estimated time based on status
-                    switch (status) {
-                        case 'RECEIVED':
-                            setEstimatedTime('25-35');
-                            break;
-                        case 'PREPARING':
-                            setEstimatedTime('15-25');
-                            break;
-                        case 'OUT_FOR_DELIVERY':
-                            setEstimatedTime('5-10');
-                            break;
-                        case 'DELIVERED':
-                            setEstimatedTime('0');
-                            localStorage.removeItem('lastOrderId');
-                            localStorage.removeItem('cart');
-                            break;
-                        default:
-                            setEstimatedTime('20-30');
-                    }
-
+                const res = await api.get('/api/orders/');
+                if (res.data && res.data.length > 0) {
+                    // Assuming the latest order is first in the list
+                    setOrderId(res.data[0].id);
+                } else {
+                    setError('No orders found.');
                     setLoading(false);
                 }
             } catch (err) {
-                console.error('Failed to fetch order status:', err);
-                if (isMounted) {
-                    setError('Unable to load order status.');
-                    setLoading(false);
-                }
+                setError('Failed to fetch orders.');
+                setLoading(false);
             }
         };
+        fetchLatestOrder();
+    }, []);
 
-        fetchStatus();
-        const interval = setInterval(fetchStatus, 30 * 1000);
-
-        return () => {
-            isMounted = false;
-            clearInterval(interval);
+    useEffect(() => {
+        if (!orderId) return;
+        // Fetch the order status/details
+        const fetchOrderStatus = async () => {
+            setLoading(true);
+            try {
+                const res = await api.get(`/api/orders/${orderId}/status/`);
+                setOrderStatus(res.data);
+                // Update estimated time based on status
+                const status = res.data.status;
+                switch (status) {
+                    case 'RECEIVED':
+                        setEstimatedTime('25-35');
+                        break;
+                    case 'PREPARING':
+                        setEstimatedTime('15-25');
+                        break;
+                    case 'OUT_FOR_DELIVERY':
+                        setEstimatedTime('5-10');
+                        break;
+                    case 'DELIVERED':
+                        setEstimatedTime('0');
+                        break;
+                    default:
+                        setEstimatedTime('20-30');
+                }
+            } catch (err) {
+                setError('Failed to fetch order status.');
+            } finally {
+                setLoading(false);
+            }
         };
+        fetchOrderStatus();
     }, [orderId]);
 
     if (loading) {
@@ -242,9 +240,9 @@ function DeliveryStatus() {
                             <Box sx={{ mb: 4 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                     <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
-                                        {steps[activeStep].label}
+                                        {steps[orderStatus?.status ? statusMap[orderStatus.status] : 0].label}
                                     </Typography>
-                                    {activeStep < 3 && (
+                                    {orderStatus?.status !== 'DELIVERED' && (
                                         <Chip
                                             label={`${estimatedTime} min`}
                                             sx={{
@@ -256,13 +254,13 @@ function DeliveryStatus() {
                                     )}
                                 </Box>
                                 <Typography variant="body1" sx={{ color: '#718096', mb: 3 }}>
-                                    {getStatusMessage(activeStep)}
+                                    {getStatusMessage(orderStatus?.status ? statusMap[orderStatus.status] : 0)}
                                 </Typography>
 
-                                {activeStep < 3 && (
+                                {orderStatus?.status !== 'DELIVERED' && (
                                     <LinearProgress
                                         variant="determinate"
-                                        value={(activeStep + 1) * 25}
+                                        value={(statusMap[orderStatus.status] + 1) * 25}
                                         sx={{
                                             height: 8,
                                             borderRadius: 4,
@@ -277,7 +275,7 @@ function DeliveryStatus() {
                             </Box>
 
                             {/* Stepper */}
-                            <Stepper activeStep={activeStep} orientation="vertical">
+                            <Stepper activeStep={orderStatus?.status ? statusMap[orderStatus.status] : 0} orientation="vertical">
                                 {steps.map((step, index) => (
                                     <Step key={step.label}>
                                         <StepLabel
@@ -287,7 +285,7 @@ function DeliveryStatus() {
                                                         width: 48,
                                                         height: 48,
                                                         borderRadius: '50%',
-                                                        backgroundColor: getStatusColor(index, activeStep),
+                                                        backgroundColor: getStatusColor(index, orderStatus?.status ? statusMap[orderStatus.status] : 0),
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
@@ -304,7 +302,7 @@ function DeliveryStatus() {
                                                     variant="h6"
                                                     sx={{
                                                         fontWeight: 600,
-                                                        color: index <= activeStep ? '#2d3748' : '#a0aec0'
+                                                        color: index <= (orderStatus?.status ? statusMap[orderStatus.status] : 0) ? '#2d3748' : '#a0aec0'
                                                     }}
                                                 >
                                                     {step.label}
@@ -312,7 +310,7 @@ function DeliveryStatus() {
                                                 <Typography
                                                     variant="body2"
                                                     sx={{
-                                                        color: index <= activeStep ? '#718096' : '#a0aec0'
+                                                        color: index <= (orderStatus?.status ? statusMap[orderStatus.status] : 0) ? '#718096' : '#a0aec0'
                                                     }}
                                                 >
                                                     {step.description}
@@ -333,10 +331,10 @@ function DeliveryStatus() {
                                 <CardContent sx={{ textAlign: 'center', py: 3 }}>
                                     <AccessTime sx={{ fontSize: 48, color: '#06C167', mb: 2 }} />
                                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#2d3748' }}>
-                                        {activeStep === 3 ? 'Delivered!' : 'Estimated Time'}
+                                        {orderStatus?.status === 'DELIVERED' ? 'Delivered!' : 'Estimated Time'}
                                     </Typography>
                                     <Typography variant="h4" sx={{ fontWeight: 700, color: '#06C167' }}>
-                                        {activeStep === 3 ? '✓' : `${estimatedTime} min`}
+                                        {orderStatus?.status === 'DELIVERED' ? '✓' : `${estimatedTime} min`}
                                     </Typography>
                                 </CardContent>
                             </Card>

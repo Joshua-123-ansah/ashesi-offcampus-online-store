@@ -86,8 +86,39 @@ function CustomerInfo() {
     };
 
     // 2) Continue with saved info
-    const handleContinue = () => {
-        navigate('/place-order', { state: { cart, info } });
+    const handleContinue = async () => {
+        // Create order in backend before navigating to payment
+        try {
+            // Prepare itemsPayload
+            const itemsPayload = Object.entries(cart).map(([foodId, qty]) => ({
+                food_item: Number(foodId),
+                quantity: qty
+            }));
+            // Fetch food items for price lookup
+            const foodRes = await api.get('/api/foodItems/');
+            const foodMap = {};
+            foodRes.data.forEach(item => { foodMap[item.id] = item; });
+            const subtotal = itemsPayload.reduce((sum, item) => {
+                const food = foodMap[item.food_item];
+                return sum + (food ? food.price * item.quantity : 0);
+            }, 0);
+            const deliveryFee = subtotal > 150 ? 0 : 5;
+            // Create order in backend
+            const res = await api.post('/api/orders/', { items: itemsPayload });
+            const newOrderId = res.data.id;
+            const orderTotal = res.data.total_amount || (subtotal + deliveryFee);
+            const orderData = {
+                orderId: newOrderId,
+                subtotal,
+                deliveryFee,
+                totalAmount: orderTotal
+            };
+            localStorage.setItem('currentOrder', JSON.stringify(orderData));
+            navigate('/payment', { state: { orderData } });
+        } catch (err) {
+            alert('Failed to create order. Please try again.');
+            console.error(err);
+        }
     };
 
     // 3) Edit flow
@@ -126,10 +157,36 @@ function CustomerInfo() {
             setEditing(false);
 
             localStorage.setItem('cart', JSON.stringify(cart));
-            navigate('/place-order', { state: { cart, info } });
+            // Now create the order as in handleContinue
+            // Prepare itemsPayload
+            const itemsPayload = Object.entries(cart).map(([foodId, qty]) => ({
+                food_item: Number(foodId),
+                quantity: qty
+            }));
+            // Fetch food items for price lookup
+            const foodRes = await api.get('/api/foodItems/');
+            const foodMap = {};
+            foodRes.data.forEach(item => { foodMap[item.id] = item; });
+            const subtotal = itemsPayload.reduce((sum, item) => {
+                const food = foodMap[item.food_item];
+                return sum + (food ? food.price * item.quantity : 0);
+            }, 0);
+            const deliveryFee = subtotal > 150 ? 0 : 5;
+            // Create order in backend
+            const res = await api.post('/api/orders/', { items: itemsPayload });
+            const newOrderId = res.data.id;
+            const orderTotal = res.data.total_amount || (subtotal + deliveryFee);
+            const orderData = {
+                orderId: newOrderId,
+                subtotal,
+                deliveryFee,
+                totalAmount: orderTotal
+            };
+            localStorage.setItem('currentOrder', JSON.stringify(orderData));
+            navigate('/payment', { state: { orderData } });
         } catch (err) {
-            console.error('Error updating profile:', err);
-            alert('Failed to update profile.');
+            console.error('Error updating profile or creating order:', err);
+            alert('Failed to update profile or create order.');
             setLoading(false);
         }
     };

@@ -1,4 +1,4 @@
-import {Navigate} from 'react-router-dom';
+import {Navigate, useLocation} from 'react-router-dom';
 import {jwtDecode} from "jwt-decode";
 import api from "../api";
 import {REFRESH_TOKEN, ACCESS_TOKEN} from "../Constants";
@@ -7,6 +7,7 @@ import {useState, useEffect} from "react";
 
 function ProtectedRoute({children}) {
     const [isAuthenticated, setIsAuthenticated] = useState(null);
+    const location = useLocation();
 
     useEffect(() => {
         auth().catch(()=>{setIsAuthenticated(false)})
@@ -49,6 +50,13 @@ function ProtectedRoute({children}) {
 
     if(isAuthenticated===null){
         return <div>Loading</div>
+    }
+
+    // If not authenticated, redirect to login with intended destination
+    if (!isAuthenticated) {
+        // If the user is trying to access /customer-info, always redirect there after login
+        const redirectTo = location.pathname === '/customer-info' ? '/customer-info' : location.pathname;
+        return <Navigate to="/login" state={{ redirectTo }} />;
     }
 
     return isAuthenticated ? children : <Navigate to="/login" />

@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff, Person, Lock } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import api from "../api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../Constants";
 
@@ -27,6 +27,7 @@ function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -46,7 +47,8 @@ function Login() {
             });
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-            navigate('/customer-info');
+            const redirectTo = location.state?.redirectTo || '/shop/cassa';
+            navigate(redirectTo);
         } catch (err) {
             setError(err.response?.data?.detail || 'Login failed. Please try again.');
         } finally {

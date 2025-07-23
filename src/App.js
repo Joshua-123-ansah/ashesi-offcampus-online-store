@@ -11,7 +11,6 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import NotFoundPage from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
-import PlaceOrder from "./pages/PlaceOrder";
 import ResetPassword from "./pages/ResetPassword";
 import PaymentVerification from "./components/PaymentVerification";
 
@@ -26,11 +25,6 @@ function App() {
             <Route path="/login" element={<Login/>} />
             <Route path="/signup" element={<RegisterAndLogout/>} />
           <Route path="/" element={<Home />} />
-            <Route path="/place-order" element={
-                <ProtectedRoute>
-                <PlaceOrder />
-                    </ProtectedRoute>
-            } />
           <Route path="/shop/:shopId" element={<Shop />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/customer-info" element={

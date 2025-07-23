@@ -159,7 +159,7 @@ function Payment() {
             if (paymentMethod === 'momo') {
                 paymentData.phone = formatPhoneNumber(phoneNumber);
             }
-
+            // api.get('/api/foodItems/')
             const response = await api.post('/api/payments/initiate/', paymentData);
             
             if (response.data.payment_url) {
@@ -578,12 +578,12 @@ function Payment() {
                                     
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                         <Typography>Subtotal</Typography>
-                                        <Typography>GH₵{(orderData.totalAmount - 5).toFixed(2)}</Typography>
+                                        <Typography>GH₵{orderData.subtotal?.toFixed(2) ?? '0.00'}</Typography>
                                     </Box>
                                     
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                         <Typography>Delivery Fee</Typography>
-                                        <Typography>GH₵5.00</Typography>
+                                        <Typography>GH₵{orderData.deliveryFee?.toFixed(2) ?? '0.00'}</Typography>
                                     </Box>
                                     
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, pt: 2, borderTop: '1px solid #e2e8f0' }}>

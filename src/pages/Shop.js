@@ -46,7 +46,6 @@ function Shop() {
     useEffect(() => {
         const fetchFoodItems = async () => {
             try {
-                console.log(api);
                 const res = await api.get("/api/foodItems/");
                 setFoodItems(res.data);
             } catch (err) {
@@ -188,8 +187,8 @@ function Shop() {
                         placeholder="Search for dishes..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        InputProps={{
-                            startAdornment: (
+                        slots={{
+                            startAdornment: () => (
                                 <InputAdornment position="start">
                                     <Search sx={{ color: '#718096' }} />
                                 </InputAdornment>

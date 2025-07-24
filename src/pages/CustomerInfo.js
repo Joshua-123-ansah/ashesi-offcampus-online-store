@@ -430,8 +430,8 @@ function CustomerInfo() {
                                                             name="name"
                                                             value={info.name}
                                                             onChange={handleChange}
-                                                            InputProps={{
-                                                                startAdornment: (
+                                                            slots={{
+                                                                startAdornment: () => (
                                                                     <InputAdornment position="start">
                                                                         <Person sx={{ color: '#718096' }} />
                                                                     </InputAdornment>
@@ -460,8 +460,8 @@ function CustomerInfo() {
                                                             name="hostelOrOffice"
                                                             value={info.hostelOrOffice}
                                                             onChange={handleChange}
-                                                            InputProps={{
-                                                                startAdornment: (
+                                                            slots={{
+                                                                startAdornment: () => (
                                                                     <InputAdornment position="start">
                                                                         <HomeIcon sx={{ color: '#718096' }} />
                                                                     </InputAdornment>
@@ -484,8 +484,8 @@ function CustomerInfo() {
                                                             name="roomOrOfficeNumber"
                                                             value={info.roomOrOfficeNumber}
                                                             onChange={handleChange}
-                                                            InputProps={{
-                                                                startAdornment: (
+                                                            slots={{
+                                                                startAdornment: () => (
                                                                     <InputAdornment position="start">
                                                                         <LocationOn sx={{ color: '#718096' }} />
                                                                     </InputAdornment>
@@ -508,8 +508,8 @@ function CustomerInfo() {
                                                             name="mobile"
                                                             value={info.mobile}
                                                             onChange={handleChange}
-                                                            InputProps={{
-                                                                startAdornment: (
+                                                            slots={{
+                                                                startAdornment: () => (
                                                                     <InputAdornment position="start">
                                                                         <Phone sx={{ color: '#718096' }} />
                                                                     </InputAdornment>

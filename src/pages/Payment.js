@@ -1,5 +1,5 @@
 // src/pages/Payment.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Container,
     Box,
@@ -18,10 +18,6 @@ import {
     Grid,
     IconButton,
     InputAdornment,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions
 } from '@mui/material';
 import {
     CreditCard,
@@ -30,7 +26,6 @@ import {
     Security,
     CheckCircle,
     Error,
-    AccountBalance
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -51,7 +46,6 @@ function Payment() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [userProfile, setUserProfile] = useState(null);
     const [paymentReference, setPaymentReference] = useState('');
     const [verifyingPayment, setVerifyingPayment] = useState(false);
 
@@ -60,7 +54,6 @@ function Payment() {
         const fetchUserProfile = async () => {
             try {
                 const response = await api.get('/api/profile/');
-                setUserProfile(response.data);
                 setUserEmail(response.data.email);
                 setRegisteredPhone(response.data.phone_number || '');
                 setPhoneNumber(response.data.phone_number || '');
@@ -72,6 +65,45 @@ function Payment() {
 
         fetchUserProfile();
     }, []);
+
+    const verifyPayment = useCallback(async (reference) => {
+        setVerifyingPayment(true);
+        setError('');
+
+        try {
+            const response = await api.post('/api/payments/verify/', {
+                reference: reference
+            });
+
+            if (response.data.status === 'success') {
+                setSuccess('Payment successful! Your order has been confirmed.');
+                
+                // Clear stored data
+                localStorage.removeItem('paymentReference');
+                localStorage.removeItem('currentOrder');
+                localStorage.removeItem('cart');
+                
+                // Store order ID for tracking
+                localStorage.setItem('lastOrderId', orderData.orderId);
+                
+                // Redirect to delivery status after a short delay
+                setTimeout(() => {
+                    navigate('/delivery-status');
+                }, 2000);
+            } else {
+                setError(response.data.message || 'Payment verification failed');
+            }
+        } catch (error) {
+            console.error('Payment verification error:', error);
+            setError(
+                error.response?.data?.message || 
+                error.response?.data?.detail || 
+                'Failed to verify payment. Please contact support.'
+            );
+        } finally {
+            setVerifyingPayment(false);
+        }
+    }, [orderData?.orderId, navigate]);
 
     // Check for payment verification on component mount (in case user returns from Paystack)
     useEffect(() => {
@@ -86,7 +118,7 @@ function Payment() {
                 setError('Payment was cancelled or failed');
             }
         }
-    }, []);
+    }, [verifyPayment]);
 
     const validatePhoneNumber = (phone) => {
         // Basic validation for Ghanaian phone numbers
@@ -181,45 +213,6 @@ function Payment() {
             );
         } finally {
             setLoading(false);
-        }
-    };
-
-    const verifyPayment = async (reference) => {
-        setVerifyingPayment(true);
-        setError('');
-
-        try {
-            const response = await api.post('/api/payments/verify/', {
-                reference: reference
-            });
-
-            if (response.data.status === 'success') {
-                setSuccess('Payment successful! Your order has been confirmed.');
-                
-                // Clear stored data
-                localStorage.removeItem('paymentReference');
-                localStorage.removeItem('currentOrder');
-                localStorage.removeItem('cart');
-                
-                // Store order ID for tracking
-                localStorage.setItem('lastOrderId', orderData.orderId);
-                
-                // Redirect to delivery status after a short delay
-                setTimeout(() => {
-                    navigate('/delivery-status');
-                }, 2000);
-            } else {
-                setError(response.data.message || 'Payment verification failed');
-            }
-        } catch (error) {
-            console.error('Payment verification error:', error);
-            setError(
-                error.response?.data?.message || 
-                error.response?.data?.detail || 
-                'Failed to verify payment. Please contact support.'
-            );
-        } finally {
-            setVerifyingPayment(false);
         }
     };
 
@@ -494,8 +487,8 @@ function Payment() {
                                             value={phoneNumber}
                                             onChange={(e) => setPhoneNumber(e.target.value)}
                                             placeholder="e.g., 0241234567"
-                                            InputProps={{
-                                                startAdornment: (
+                                            slots={{
+                                                startAdornment: () => (
                                                     <InputAdornment position="start">
                                                         <Phone sx={{ color: '#718096' }} />
                                                     </InputAdornment>

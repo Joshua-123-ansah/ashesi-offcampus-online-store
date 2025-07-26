@@ -1,5 +1,5 @@
 // src/pages/DeliveryStatus.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     Container,
     Box,
@@ -14,7 +14,8 @@ import {
     Grid,
     Chip,
     LinearProgress,
-    IconButton
+    IconButton,
+    CircularProgress
 } from '@mui/material';
 import {
     Receipt,
@@ -24,12 +25,32 @@ import {
     Phone,
     Home as HomeIcon,
     AccessTime,
-    ArrowBack
+    ArrowBack,
+    Refresh
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../api';
 import Loader from '../components/Loader';
+
+// Add CSS animation
+const fadeInAnimation = `
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+
+// Inject the CSS
+const style = document.createElement('style');
+style.textContent = fadeInAnimation;
+document.head.appendChild(style);
 
 const steps = [
     {
@@ -90,35 +111,116 @@ function DeliveryStatus() {
     const [error, setError] = useState(null);
     const [estimatedTime, setEstimatedTime] = useState('20-30');
 
-    useEffect(() => {
-        // Fetch the user's latest order
-        const fetchLatestOrder = async () => {
-            try {
-                const res = await api.get('/api/orders/');
-                if (res.data && res.data.length > 0) {
-                    // Assuming the latest order is first in the list
-                    setOrderId(res.data[0].id);
-                } else {
-                    setError('No orders found.');
-                    setLoading(false);
+    const fetchLatestOrder = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            const res = await api.get('/api/orders/');
+            
+            if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+                const sortedOrders = res.data.sort((a, b) => {
+                    const dateA = new Date(a.created_at || a.createdAt || 0);
+                    const dateB = new Date(b.created_at || b.createdAt || 0);
+                    return dateB - dateA;
+                });
+                
+                let activeOrder = null;
+                let mostRecentDeliveredOrder = null;
+                
+                for (const order of sortedOrders) {
+                    if (order.status !== 'DELIVERED') {
+                        activeOrder = order;
+                        break;
+                    } else if (!mostRecentDeliveredOrder) {
+                        mostRecentDeliveredOrder = order;
+                    }
                 }
-            } catch (err) {
-                setError('Failed to fetch orders.');
+                
+                if (activeOrder) {
+                    setOrderId(activeOrder.id);
+                    setOrderStatus(null);
+                } else if (mostRecentDeliveredOrder) {
+                    setOrderId(mostRecentDeliveredOrder.id);
+                    setOrderStatus(null);
+                } else {
+                    setOrderId(null);
+                    setOrderStatus(null);
+                }
+            } else {
+                setError('You don\'t have any orders yet. Start shopping to place your first order!');
                 setLoading(false);
             }
-        };
-        fetchLatestOrder();
+        } catch (err) {
+            if (err.response?.status === 401) {
+                setError('Please log in to view your orders.');
+            } else if (err.response?.status === 403) {
+                setError('You don\'t have permission to view orders.');
+            } else {
+                setError('Failed to fetch orders. Please try again later.');
+            }
+            setLoading(false);
+        }
     }, []);
+
+    const handleRefresh = async () => {
+        setOrderId(null);
+        setOrderStatus(null);
+        await fetchLatestOrder();
+    };
+
+    useEffect(() => {
+        fetchLatestOrder();
+    }, [fetchLatestOrder]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchLatestOrder();
+        }, 30000);
+
+        return () => clearInterval(interval);
+    }, [fetchLatestOrder]);
+
+    useEffect(() => {
+        if (orderId && orderStatus?.status && orderStatus.status !== 'DELIVERED') {
+            const frequentInterval = setInterval(() => {
+                fetchLatestOrder();
+            }, 15000);
+
+            return () => clearInterval(frequentInterval);
+        }
+    }, [orderId, orderStatus?.status, fetchLatestOrder]);
+
+    useEffect(() => {
+        if (!orderId) {
+            const frequentInterval = setInterval(() => {
+                fetchLatestOrder();
+            }, 10000);
+
+            return () => clearInterval(frequentInterval);
+        }
+    }, [orderId, fetchLatestOrder]);
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                fetchLatestOrder();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [fetchLatestOrder]);
 
     useEffect(() => {
         if (!orderId) return;
-        // Fetch the order status/details
+        
         const fetchOrderStatus = async () => {
             setLoading(true);
             try {
                 const res = await api.get(`/api/orders/${orderId}/status/`);
                 setOrderStatus(res.data);
-                // Update estimated time based on status
+                
                 const status = res.data.status;
                 switch (status) {
                     case 'RECEIVED':
@@ -137,7 +239,13 @@ function DeliveryStatus() {
                         setEstimatedTime('20-30');
                 }
             } catch (err) {
-                setError('Failed to fetch order status.');
+                if (err.response?.status === 404) {
+                    setError('Order not found. It may have been cancelled or removed.');
+                } else if (err.response?.status === 401) {
+                    setError('Please log in to view order details.');
+                } else {
+                    setError('Failed to fetch order status. Please try again later.');
+                }
             } finally {
                 setLoading(false);
             }
@@ -172,23 +280,111 @@ function DeliveryStatus() {
                     >
                         <HomeIcon sx={{ fontSize: 80, color: '#e2e8f0', mb: 3 }} />
                         <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#2d3748' }}>
-                            No Active Orders
+                            {error.includes('don\'t have any orders') ? 'No Orders Found' : 'Unable to Load Orders'}
                         </Typography>
                         <Typography variant="body1" sx={{ color: '#718096', mb: 4 }}>
                             {error}
                         </Typography>
-                        <Button
-                            variant="contained"
-                            onClick={() => navigate('/')}
-                            sx={{
-                                backgroundColor: '#06C167',
-                                px: 4,
-                                py: 1.5,
-                                '&:hover': { backgroundColor: '#048A47' }
-                            }}
-                        >
-                            Start New Order
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <Button
+                                variant="contained"
+                                onClick={() => navigate('/shop/cassa')}
+                                sx={{
+                                    backgroundColor: '#06C167',
+                                    px: 4,
+                                    py: 1.5,
+                                    '&:hover': { backgroundColor: '#048A47' }
+                                }}
+                            >
+                                Browse Menu
+                            </Button>
+                            {error.includes('log in') && (
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => navigate('/login')}
+                                    sx={{
+                                        borderColor: '#06C167',
+                                        color: '#06C167',
+                                        px: 4,
+                                        py: 1.5,
+                                        '&:hover': { 
+                                            borderColor: '#048A47',
+                                            backgroundColor: '#f0fff4'
+                                        }
+                                    }}
+                                >
+                                    Sign In
+                                </Button>
+                            )}
+                        </Box>
+                    </Paper>
+                </Container>
+            </div>
+        );
+    }
+
+    if (!orderId) {
+        return (
+            <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+                <Navbar/>
+                <Container maxWidth="md" sx={{ py: 6 }}>
+                    <Paper
+                        sx={{
+                            p: 6,
+                            borderRadius: 3,
+                            backgroundColor: 'white',
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                            textAlign: 'center'
+                        }}
+                    >
+                        <CheckCircle sx={{ fontSize: 80, color: '#06C167', mb: 3 }} />
+                        <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#2d3748' }}>
+                            No Active Orders
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: '#718096', mb: 4 }}>
+                            You don't have any active orders to track. Ready to place a new order?
+                        </Typography>
+                        
+                        <Typography variant="caption" sx={{ color: '#a0aec0', display: 'block', mb: 4 }}>
+                            🔄 Automatically checking for new orders every 10 seconds
+                        </Typography>
+                        
+                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <Button
+                                variant="contained"
+                                onClick={() => navigate('/shop/cassa')}
+                                sx={{
+                                    backgroundColor: '#06C167',
+                                    px: 4,
+                                    py: 1.5,
+                                    fontSize: '1.1rem',
+                                    fontWeight: 600,
+                                    '&:hover': { backgroundColor: '#048A47' }
+                                }}
+                            >
+                                Start New Order
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                onClick={handleRefresh}
+                                disabled={loading}
+                                startIcon={loading ? <CircularProgress size={16} /> : <Refresh />}
+                                sx={{
+                                    borderColor: '#06C167',
+                                    color: '#06C167',
+                                    px: 4,
+                                    py: 1.5,
+                                    fontSize: '1.1rem',
+                                    fontWeight: 600,
+                                    '&:hover': { 
+                                        borderColor: '#048A47',
+                                        backgroundColor: 'rgba(6, 193, 103, 0.1)'
+                                    }
+                                }}
+                            >
+                                {loading ? 'Checking...' : 'Check for Orders'}
+                            </Button>
+                        </Box>
                     </Paper>
                 </Container>
             </div>
@@ -200,7 +396,6 @@ function DeliveryStatus() {
             <Navbar/>
 
             <Container maxWidth="lg" sx={{ py: 4 }}>
-                {/* Header */}
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                     <IconButton
                         onClick={() => navigate('/')}
@@ -214,7 +409,7 @@ function DeliveryStatus() {
                     >
                         <ArrowBack />
                     </IconButton>
-                    <Box>
+                    <Box sx={{ flex: 1 }}>
                         <Typography variant="h4" sx={{ fontWeight: 700, color: '#2d3748' }}>
                             Track Your Order
                         </Typography>
@@ -222,10 +417,23 @@ function DeliveryStatus() {
                             Order #{orderId}
                         </Typography>
                     </Box>
+                    <IconButton
+                        onClick={handleRefresh}
+                        sx={{
+                            ml: 2,
+                            color: '#2d3748',
+                            backgroundColor: 'white',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                            '&:hover': { backgroundColor: '#f8f9fa' }
+                        }}
+                        disabled={loading}
+                        title="Check for new orders"
+                    >
+                        {loading ? <CircularProgress size={24} color="primary" /> : <Refresh />}
+                    </IconButton>
                 </Box>
 
                 <Grid container spacing={4}>
-                    {/* Main Tracking */}
                     <Grid item xs={12} lg={8}>
                         <Paper
                             sx={{
@@ -236,7 +444,6 @@ function DeliveryStatus() {
                                 mb: 3
                             }}
                         >
-                            {/* Status Header */}
                             <Box sx={{ mb: 4 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                     <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
@@ -274,7 +481,6 @@ function DeliveryStatus() {
                                 )}
                             </Box>
 
-                            {/* Stepper */}
                             <Stepper activeStep={orderStatus?.status ? statusMap[orderStatus.status] : 0} orientation="vertical">
                                 {steps.map((step, index) => (
                                     <Step key={step.label}>
@@ -320,26 +526,83 @@ function DeliveryStatus() {
                                     </Step>
                                 ))}
                             </Stepper>
+
+                            {orderStatus?.status === 'DELIVERED' && (
+                                <Box sx={{ mt: 4, textAlign: 'center' }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748' }}>
+                                        Order Delivered Successfully! 🎉
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ color: '#718096', mb: 3 }}>
+                                        Hope you enjoyed your meal! Ready for your next delicious order?
+                                    </Typography>
+                                    <Button
+                                        variant="contained"
+                                        onClick={() => navigate('/shop/cassa')}
+                                        sx={{
+                                            backgroundColor: '#06C167',
+                                            px: 4,
+                                            py: 1.5,
+                                            fontSize: '1.1rem',
+                                            fontWeight: 600,
+                                            '&:hover': { backgroundColor: '#048A47' }
+                                        }}
+                                    >
+                                        Start New Order
+                                    </Button>
+                                </Box>
+                            )}
                         </Paper>
                     </Grid>
 
-                    {/* Sidebar */}
                     <Grid item xs={12} lg={4}>
                         <Box sx={{ position: 'sticky', top: 100 }}>
-                            {/* Estimated Time Card */}
-                            <Card sx={{ mb: 3, backgroundColor: '#f0fff4', border: '1px solid #06C167' }}>
-                                <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                            <Card sx={{ 
+                                mb: 3, 
+                                backgroundColor: '#f0fff4', 
+                                border: '1px solid #06C167',
+                                width: '100%',
+                                height: 180,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center'
+                            }}>
+                                <CardContent sx={{ 
+                                    textAlign: 'center', 
+                                    py: 3,
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
                                     <AccessTime sx={{ fontSize: 48, color: '#06C167', mb: 2 }} />
-                                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#2d3748' }}>
-                                        {orderStatus?.status === 'DELIVERED' ? 'Delivered!' : 'Estimated Time'}
+                                    <Typography variant="h6" sx={{ 
+                                        fontWeight: 600, 
+                                        mb: 1, 
+                                        color: '#2d3748',
+                                        width: '100%'
+                                    }}>
+                                        Estimated Time
                                     </Typography>
-                                    <Typography variant="h4" sx={{ fontWeight: 700, color: '#06C167' }}>
-                                        {orderStatus?.status === 'DELIVERED' ? '✓' : `${estimatedTime} min`}
-                                    </Typography>
+                                    <Box sx={{ 
+                                        width: '100%',
+                                        height: 60,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <Typography variant="h4" sx={{ 
+                                            fontWeight: 700, 
+                                            color: '#06C167',
+                                            textAlign: 'center',
+                                            width: '100%'
+                                        }}>
+                                            {`${estimatedTime} min`}
+                                        </Typography>
+                                    </Box>
                                 </CardContent>
                             </Card>
 
-                            {/* Contact Support */}
                             <Paper
                                 sx={{
                                     p: 3,

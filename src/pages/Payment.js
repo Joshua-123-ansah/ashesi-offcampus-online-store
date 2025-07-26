@@ -35,8 +35,8 @@ function Payment() {
     const navigate = useNavigate();
     const location = useLocation();
     
-    // Get order data from navigation state or localStorage
-    const orderData = location.state?.orderData || JSON.parse(localStorage.getItem('currentOrder') || 'null');
+    // Get cart data from navigation state or localStorage
+    const cart = location.state?.cart || JSON.parse(localStorage.getItem('cart') || 'null');
     
     const [paymentMethod, setPaymentMethod] = useState('card');
     const [phoneOption, setPhoneOption] = useState('registered'); // 'registered' or 'new'
@@ -48,6 +48,49 @@ function Payment() {
     const [success, setSuccess] = useState('');
     const [paymentReference, setPaymentReference] = useState('');
     const [verifyingPayment, setVerifyingPayment] = useState(false);
+    
+    // Calculate order details from cart
+    const [orderDetails, setOrderDetails] = useState(null);
+
+    // Calculate order details on component mount
+    useEffect(() => {
+        const calculateOrderDetails = async () => {
+            if (!cart || Object.keys(cart).length === 0) return;
+            
+            try {
+                // Fetch food items for price lookup
+                const foodRes = await api.get('/api/foodItems/');
+                const foodMap = {};
+                foodRes.data.forEach(item => { foodMap[item.id] = item; });
+                
+                // Prepare itemsPayload
+                const itemsPayload = Object.entries(cart).map(([foodId, qty]) => ({
+                    food_item: Number(foodId),
+                    quantity: qty
+                }));
+                
+                const subtotal = itemsPayload.reduce((sum, item) => {
+                    const food = foodMap[item.food_item];
+                    return sum + (food ? food.price * item.quantity : 0);
+                }, 0);
+                
+                const deliveryFee = subtotal > 150 ? 0 : 5;
+                const totalAmount = subtotal + deliveryFee;
+                
+                setOrderDetails({
+                    itemsPayload,
+                    subtotal,
+                    deliveryFee,
+                    totalAmount
+                });
+            } catch (err) {
+                console.error('Error calculating order details:', err);
+                setError('Failed to calculate order details. Please try again.');
+            }
+        };
+        
+        calculateOrderDetails();
+    }, [cart]);
 
     // Fetch user profile on component mount
     useEffect(() => {
@@ -76,25 +119,65 @@ function Payment() {
             });
 
             if (response.data.status === 'success') {
-                setSuccess('Payment successful! Your order has been confirmed.');
+                // Payment successful - update the temporary order status
+                const tempOrderId = localStorage.getItem('tempOrderId');
                 
-                // Clear stored data
-                localStorage.removeItem('paymentReference');
-                localStorage.removeItem('currentOrder');
-                localStorage.removeItem('cart');
-                
-                // Store order ID for tracking
-                localStorage.setItem('lastOrderId', orderData.orderId);
-                
-                // Redirect to delivery status after a short delay
-                setTimeout(() => {
-                    navigate('/delivery-status');
-                }, 2000);
+                if (tempOrderId) {
+                    try {
+                        // Update the temporary order to confirmed status
+                        await api.patch(`/api/orders/${tempOrderId}/`, {
+                            status: 'RECEIVED'
+                        });
+                        
+                        setSuccess('Payment successful! Your order has been confirmed.');
+                        
+                        // Clear stored data
+                        localStorage.removeItem('paymentReference');
+                        localStorage.removeItem('tempOrderId');
+                        localStorage.removeItem('cart');
+                        
+                        // Store order ID for tracking
+                        localStorage.setItem('lastOrderId', tempOrderId);
+                        
+                        // Redirect to delivery status after a short delay
+                        setTimeout(() => {
+                            navigate('/delivery-status');
+                        }, 2000);
+                    } catch (orderError) {
+                        console.error('Order update error:', orderError);
+                        setError('Payment successful but order update failed. Please contact support.');
+                    }
+                } else {
+                    setError('Order ID not found. Please contact support.');
+                }
             } else {
+                // Payment failed - delete the temporary order
+                const tempOrderId = localStorage.getItem('tempOrderId');
+                if (tempOrderId) {
+                    try {
+                        await api.delete(`/api/orders/${tempOrderId}/`);
+                    } catch (deleteError) {
+                        console.error('Failed to delete temporary order:', deleteError);
+                    }
+                    localStorage.removeItem('tempOrderId');
+                }
+                
                 setError(response.data.message || 'Payment verification failed');
             }
         } catch (error) {
             console.error('Payment verification error:', error);
+            
+            // Payment verification failed - delete the temporary order
+            const tempOrderId = localStorage.getItem('tempOrderId');
+            if (tempOrderId) {
+                try {
+                    await api.delete(`/api/orders/${tempOrderId}/`);
+                } catch (deleteError) {
+                    console.error('Failed to delete temporary order:', deleteError);
+                }
+                localStorage.removeItem('tempOrderId');
+            }
+            
             setError(
                 error.response?.data?.message || 
                 error.response?.data?.detail || 
@@ -103,7 +186,7 @@ function Payment() {
         } finally {
             setVerifyingPayment(false);
         }
-    }, [orderData?.orderId, navigate]);
+    }, [navigate]);
 
     // Check for payment verification on component mount (in case user returns from Paystack)
     useEffect(() => {
@@ -159,7 +242,7 @@ function Payment() {
     };
 
     const initiatePayment = async () => {
-        if (!orderData) {
+        if (!orderDetails) {
             setError('No order data found. Please try again.');
             return;
         }
@@ -180,24 +263,33 @@ function Payment() {
         setError('');
 
         try {
+            // Create a temporary order first to get an order_id for payment
+            const tempOrderRes = await api.post('/api/orders/', { 
+                items: orderDetails.itemsPayload,
+                status: 'PENDING_PAYMENT' // Add status to indicate this is a pending order
+            });
+            
+            const tempOrderId = tempOrderRes.data.id;
+            
             const paymentData = {
-                order_id: orderData.orderId,
+                order_id: tempOrderId, // Include the temporary order_id
                 payment_method: paymentMethod,
                 email: userEmail,
-                amount: orderData.totalAmount
+                amount: orderDetails.totalAmount
             };
 
             // Add phone number for MoMo payments
             if (paymentMethod === 'momo') {
                 paymentData.phone = formatPhoneNumber(phoneNumber);
             }
-            // api.get('/api/foodItems/')
+
             const response = await api.post('/api/payments/initiate/', paymentData);
             
             if (response.data.payment_url) {
-                // Save reference for later verification
+                // Save reference and temp order ID for later verification
                 setPaymentReference(response.data.reference);
                 localStorage.setItem('paymentReference', response.data.reference);
+                localStorage.setItem('tempOrderId', tempOrderId);
                 
                 // Redirect to Paystack payment page
                 window.location.href = response.data.payment_url;
@@ -275,7 +367,7 @@ function Payment() {
         );
     }
 
-    if (!orderData) {
+    if (!orderDetails) {
         return (
             <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
                 <Navbar />
@@ -283,14 +375,14 @@ function Payment() {
                     <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3 }}>
                         <Error sx={{ fontSize: 80, color: '#e53e3e', mb: 3 }} />
                         <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-                            No Order Found
+                            No Cart Items Found
                         </Typography>
                         <Typography variant="body1" sx={{ color: '#718096', mb: 4 }}>
-                            Please place an order first before proceeding to payment.
+                            Please add items to your cart before proceeding to payment.
                         </Typography>
                         <Button
                             variant="contained"
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate('/shop/cassa')}
                             sx={{
                                 backgroundColor: '#06C167',
                                 px: 4,
@@ -347,7 +439,7 @@ function Payment() {
                 <Grid container spacing={4}>
                     {/* Payment Form */}
                     <Grid item xs={12} md={8}>
-                        <Paper sx={{ p: 4, borderRadius: 3, backgroundColor: 'white' }}>
+                        <Paper sx={{ p: 3, borderRadius: 3, backgroundColor: 'white' }}>
                             {error && (
                                 <Alert 
                                     severity="error" 
@@ -550,7 +642,7 @@ function Payment() {
                                         Processing...
                                     </Box>
                                 ) : (
-                                    `Pay GH₵${orderData?.totalAmount?.toFixed(2) || '0.00'}`
+                                    `Pay GH₵${orderDetails?.totalAmount?.toFixed(2) || '0.00'}`
                                 )}
                             </Button>
                         </Paper>
@@ -563,26 +655,28 @@ function Payment() {
                                 Order Summary
                             </Typography>
 
-                            {orderData && (
+                            {orderDetails && (
                                 <Box>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                        <Typography variant="body1">Order #{orderData.orderId}</Typography>
+                                        <Typography variant="body2" sx={{ color: '#718096', fontStyle: 'italic' }}>
+                                            Order will be created after payment
+                                        </Typography>
                                     </Box>
                                     
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                         <Typography>Subtotal</Typography>
-                                        <Typography>GH₵{orderData.subtotal?.toFixed(2) ?? '0.00'}</Typography>
+                                        <Typography>GH₵{orderDetails.subtotal?.toFixed(2) ?? '0.00'}</Typography>
                                     </Box>
                                     
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                         <Typography>Delivery Fee</Typography>
-                                        <Typography>GH₵{orderData.deliveryFee?.toFixed(2) ?? '0.00'}</Typography>
+                                        <Typography>GH₵{orderDetails.deliveryFee?.toFixed(2) ?? '0.00'}</Typography>
                                     </Box>
                                     
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, pt: 2, borderTop: '1px solid #e2e8f0' }}>
                                         <Typography variant="h6" sx={{ fontWeight: 600 }}>Total</Typography>
                                         <Typography variant="h6" sx={{ fontWeight: 600, color: '#06C167' }}>
-                                            GH₵{orderData.totalAmount.toFixed(2)}
+                                            GH₵{orderDetails.totalAmount.toFixed(2)}
                                         </Typography>
                                     </Box>
 

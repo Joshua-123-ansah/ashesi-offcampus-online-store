@@ -27,22 +27,30 @@ function PaymentVerification() {
             
             if (!reference && !trxref) {
                 setStatus('failed');
-                setMessage('No payment reference found');
+                setMessage('No payment reference found. Please contact support if you believe this is an error.');
                 return;
             }
 
             try {
+                setStatus('verifying');
                 const response = await api.post('/api/payments/verify/', {
                     reference: reference || trxref
                 });
 
                 if (response.data.status === 'success') {
                     setStatus('success');
-                    setMessage('Payment successful! Your order has been confirmed.');
+                    setMessage('Payment successful! Your order has been confirmed and is being prepared.');
                     
                     // Clear payment data
                     localStorage.removeItem('paymentReference');
                     localStorage.removeItem('currentOrder');
+                    localStorage.removeItem('cart');
+                    
+                    // Store order ID for tracking
+                    const orderData = JSON.parse(localStorage.getItem('currentOrder') || '{}');
+                    if (orderData.orderId) {
+                        localStorage.setItem('lastOrderId', orderData.orderId);
+                    }
                     
                     // Redirect to delivery status after delay
                     setTimeout(() => {
@@ -50,7 +58,7 @@ function PaymentVerification() {
                     }, 3000);
                 } else {
                     setStatus('failed');
-                    setMessage(response.data.message || 'Payment verification failed');
+                    setMessage(response.data.message || 'Payment verification failed. Please contact support.');
                 }
             } catch (error) {
                 console.error('Payment verification error:', error);
@@ -58,7 +66,7 @@ function PaymentVerification() {
                 setMessage(
                     error.response?.data?.message || 
                     error.response?.data?.detail || 
-                    'Failed to verify payment'
+                    'Failed to verify payment. Please contact support with your payment reference.'
                 );
             }
         };

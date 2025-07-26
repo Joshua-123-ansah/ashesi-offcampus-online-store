@@ -42,14 +42,18 @@ function Shop() {
     });
     const [foodItems, setFoodItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchFoodItems = async () => {
             try {
+                setLoading(true);
+                setError(null);
                 const res = await api.get("/api/foodItems/");
                 setFoodItems(res.data);
             } catch (err) {
                 console.error("Error fetching foodItems:", err);
+                setError("Failed to load menu items. Please try again.");
             } finally {
                 setLoading(false);
             }
@@ -62,12 +66,38 @@ function Shop() {
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
 
+    // Handle cart click - always use current cart from localStorage
+    const handleCartClick = () => {
+        const currentCart = JSON.parse(localStorage.getItem('cart') || 'null') || {};
+        navigate("/checkout", { state: { cart: currentCart } });
+    };
+
     if (loading) {
         return (
             <Box sx={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-                <Navbar title="Cassa Bella Cuisine" />
+                <Navbar title="Cassa Bella Cuisine" showCartButton={true} cartCount={Object.values(cart).reduce((sum, q) => sum + q, 0)} onCartClick={handleCartClick} />
                 <Container sx={{ mt: 4 }}>
-                    <Loader />
+                    <Loader message="Loading delicious menu items..." />
+                </Container>
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Box sx={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+                <Navbar title="Cassa Bella Cuisine" showCartButton={true} cartCount={Object.values(cart).reduce((sum, q) => sum + q, 0)} onCartClick={handleCartClick} />
+                <Container sx={{ mt: 4, textAlign: 'center' }}>
+                    <Typography variant="h6" color="error" sx={{ mb: 2 }}>
+                        {error}
+                    </Typography>
+                    <Button 
+                        variant="contained" 
+                        onClick={() => window.location.reload()}
+                        sx={{ backgroundColor: '#06C167' }}
+                    >
+                        Try Again
+                    </Button>
                 </Container>
             </Box>
         );
@@ -96,11 +126,6 @@ function Shop() {
             return { ...prev, [id]: nextQty };
         });
 
-    // Handle cart click - always use current cart from localStorage
-    const handleCartClick = () => {
-        const currentCart = JSON.parse(localStorage.getItem('cart') || 'null') || {};
-        navigate("/checkout", { state: { cart: currentCart } });
-    };
 
     return (
         <Box sx={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>

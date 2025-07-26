@@ -1,5 +1,5 @@
 // src/components/Navbar.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     AppBar,
     Toolbar,
@@ -51,14 +51,7 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
 
     const open = Boolean(anchorEl);
 
-    // Check authentication status on component mount
-    useEffect(() => {
-        checkAuthStatus();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-
-    const checkAuthStatus = async () => {
+    const checkAuthStatus = useCallback(async () => {
         const token = localStorage.getItem(ACCESS_TOKEN);
         if (!token) {
             setIsAuthenticated(false);
@@ -87,7 +80,13 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
             setIsAuthenticated(false);
             setUserInfo(null);
         }
-    };
+    }, []);
+
+    // Check authentication status on component mount
+    useEffect(() => {
+        checkAuthStatus();
+    }, [checkAuthStatus]);
+
 
     const fetchUserProfile = async () => {
         try {

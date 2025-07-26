@@ -15,6 +15,7 @@ import {
 import { Add, Remove, Delete, ArrowBack } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
 import api from '../api';
+import Loader from '../components/Loader';
 
 function Checkout() {
     const location = useLocation();
@@ -30,16 +31,20 @@ function Checkout() {
 
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [localCart, setLocalCart] = useState(cart);
 
     useEffect(() => {
         const fetchCartItems = async () => {
             try {
+                setLoading(true);
+                setError(null);
                 const res = await api.get('/api/foodItems/');
                 const cartItems = res.data.filter(item => cart[item.id]);
                 setItems(cartItems);
             } catch (err) {
                 console.error('Failed to load cart items:', err);
+                setError('Failed to load your cart items. Please try again.');
             } finally {
                 setLoading(false);
             }
@@ -72,6 +77,10 @@ function Checkout() {
     const total = subtotal + deliveryFee;
 
     const handleProceed = () => {
+        if (Object.keys(localCart).length === 0) {
+            alert('Your cart is empty. Please add some items first.');
+            return;
+        }
         localStorage.setItem('cart', JSON.stringify(localCart));
         navigate('/customer-info', { state: { cart: localCart } });
     };
@@ -81,7 +90,27 @@ function Checkout() {
             <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
                 <Navbar />
                 <Container sx={{ mt: 4, textAlign: 'center' }}>
-                    <Typography>Loading your cart…</Typography>
+                    <Loader message="Loading your cart..." />
+                </Container>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+                <Navbar />
+                <Container sx={{ mt: 4, textAlign: 'center' }}>
+                    <Typography variant="h6" color="error" sx={{ mb: 2 }}>
+                        {error}
+                    </Typography>
+                    <Button 
+                        variant="contained" 
+                        onClick={() => window.location.reload()}
+                        sx={{ backgroundColor: '#06C167' }}
+                    >
+                        Try Again
+                    </Button>
                 </Container>
             </div>
         );

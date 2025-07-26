@@ -47,8 +47,19 @@ function Login() {
             });
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-            const redirectTo = location.state?.redirectTo || '/shop/cassa';
-            navigate(redirectTo);
+            
+            // Check if user is coming from checkout flow (has redirectTo in state)
+            if (location.state?.redirectTo) {
+                navigate(location.state.redirectTo);
+            } 
+            // Check if this is a new user who just created an account
+            else if (location.state?.isNewUser) {
+                navigate('/customer-info');
+            } 
+            // For direct login, send to menu page
+            else {
+                navigate('/shop/cassa');
+            }
         } catch (err) {
             setError(err.response?.data?.detail || 'Login failed. Please try again.');
         } finally {

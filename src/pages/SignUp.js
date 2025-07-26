@@ -1,5 +1,5 @@
 // src/pages/SignUp.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Container,
     TextField,
@@ -31,7 +31,7 @@ import {
     Security
 } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import api from '../api';
 
 const steps = ['Personal Info', 'Contact Details', 'Address', 'Security'];
@@ -39,6 +39,7 @@ const steps = ['Personal Info', 'Contact Details', 'Address', 'Security'];
 function SignUp() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [searchParams] = useSearchParams();
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -58,6 +59,14 @@ function SignUp() {
     const [passwordMatch, setPasswordMatch] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [step, setStep] = useState('form');
+
+    // Check if user has been verified via URL parameters
+    useEffect(() => {
+        const verified = searchParams.get('verified');
+        if (verified === 'true') {
+            setStep('verified');
+        }
+    }, [searchParams]);
 
     const usernameRegex = /^[A-Za-z0-9@.+\-_]{1,150}$/;
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
@@ -188,6 +197,7 @@ function SignUp() {
                             <Link
                                 component={RouterLink}
                                 to="/login"
+                                state={{ isNewUser: true }}
                                 sx={{
                                     color: '#06C167',
                                     fontWeight: 600,
@@ -203,6 +213,7 @@ function SignUp() {
                             variant="contained"
                             component={RouterLink}
                             to="/login"
+                            state={{ isNewUser: true }}
                             sx={{
                                 backgroundColor: '#06C167',
                                 px: { xs: 3, sm: 4 },
@@ -214,6 +225,109 @@ function SignUp() {
                             }}
                         >
                             Go to Sign In
+                        </Button>
+                    </Paper>
+                </Container>
+            </div>
+        );
+    }
+
+    if (step === 'verified') {
+        return (
+            <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+                <Navbar />
+                <Container
+                    maxWidth="sm"
+                    sx={{
+                        py: { xs: 3, sm: 4, md: 6 },
+                        px: { xs: 2, sm: 3 }
+                    }}
+                >
+                    <Paper
+                        elevation={0}
+                        sx={{
+                            p: { xs: 3, sm: 4, md: 6 },
+                            borderRadius: { xs: 2, sm: 3 },
+                            backgroundColor: 'white',
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                            textAlign: 'center'
+                        }}
+                    >
+                        <Box sx={{ mb: 3 }}>
+                            <AccountCircle
+                                sx={{
+                                    fontSize: { xs: 60, sm: 80 },
+                                    color: '#06C167',
+                                    mb: 2
+                                }}
+                            />
+                        </Box>
+
+                        <Alert
+                            severity="success"
+                            sx={{
+                                mb: 3,
+                                borderRadius: 2,
+                                backgroundColor: '#f0fff4',
+                                border: '1px solid #06C167'
+                            }}
+                        >
+                            <Typography
+                                variant="h6"
+                                sx={{
+                                    fontWeight: 600,
+                                    mb: 1,
+                                    fontSize: { xs: '1.1rem', sm: '1.25rem' }
+                                }}
+                            >
+                                Email Verified Successfully!
+                            </Typography>
+                            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                                Your account has been activated. You can now sign in to start using our services.
+                            </Typography>
+                        </Alert>
+
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                mb: 3,
+                                fontSize: { xs: '0.9rem', sm: '1rem' },
+                                color: '#718096'
+                            }}
+                        >
+                            Welcome to Ashesi Online Market Place! You can now{' '}
+                            <Link
+                                component={RouterLink}
+                                to="/login"
+                                state={{ isNewUser: true }}
+                                sx={{
+                                    color: '#06C167',
+                                    fontWeight: 600,
+                                    textDecoration: 'none',
+                                    '&:hover': { textDecoration: 'underline' }
+                                }}
+                            >
+                                sign in to your account
+                            </Link>
+                            {' '}and start shopping.
+                        </Typography>
+
+                        <Button
+                            variant="contained"
+                            component={RouterLink}
+                            to="/login"
+                            state={{ isNewUser: true }}
+                            sx={{
+                                backgroundColor: '#06C167',
+                                px: { xs: 3, sm: 4 },
+                                py: { xs: 1.2, sm: 1.5 },
+                                fontSize: { xs: '1rem', sm: '1.1rem' },
+                                fontWeight: 600,
+                                borderRadius: 2,
+                                '&:hover': { backgroundColor: '#048A47' }
+                            }}
+                        >
+                            Sign In Now
                         </Button>
                     </Paper>
                 </Container>

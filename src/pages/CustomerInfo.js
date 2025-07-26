@@ -25,7 +25,6 @@ import {
     Home as HomeIcon,
     Phone,
     ArrowBack,
-    CheckCircle,
     LocationOn,
     Save,
     Cancel,
@@ -85,40 +84,13 @@ function CustomerInfo() {
         setInfo((prev) => ({ ...prev, [name]: value }));
     };
 
+    // Helper function to create order - REMOVED (will be handled after payment)
+    // const createOrder = async () => { ... } - REMOVED
+
     // 2) Continue with saved info
     const handleContinue = async () => {
-        // Create order in backend before navigating to payment
-        try {
-            // Prepare itemsPayload
-            const itemsPayload = Object.entries(cart).map(([foodId, qty]) => ({
-                food_item: Number(foodId),
-                quantity: qty
-            }));
-            // Fetch food items for price lookup
-            const foodRes = await api.get('/api/foodItems/');
-            const foodMap = {};
-            foodRes.data.forEach(item => { foodMap[item.id] = item; });
-            const subtotal = itemsPayload.reduce((sum, item) => {
-                const food = foodMap[item.food_item];
-                return sum + (food ? food.price * item.quantity : 0);
-            }, 0);
-            const deliveryFee = subtotal > 150 ? 0 : 5;
-            // Create order in backend
-            const res = await api.post('/api/orders/', { items: itemsPayload });
-            const newOrderId = res.data.id;
-            const orderTotal = res.data.total_amount || (subtotal + deliveryFee);
-            const orderData = {
-                orderId: newOrderId,
-                subtotal,
-                deliveryFee,
-                totalAmount: orderTotal
-            };
-            localStorage.setItem('currentOrder', JSON.stringify(orderData));
-            navigate('/payment', { state: { orderData } });
-        } catch (err) {
-            alert('Failed to create order. Please try again.');
-            console.error(err);
-        }
+        // Just navigate to payment with cart data
+        navigate('/payment', { state: { cart } });
     };
 
     // 3) Edit flow
@@ -156,37 +128,11 @@ function CustomerInfo() {
             setInitialInfo(info);
             setEditing(false);
 
-            localStorage.setItem('cart', JSON.stringify(cart));
-            // Now create the order as in handleContinue
-            // Prepare itemsPayload
-            const itemsPayload = Object.entries(cart).map(([foodId, qty]) => ({
-                food_item: Number(foodId),
-                quantity: qty
-            }));
-            // Fetch food items for price lookup
-            const foodRes = await api.get('/api/foodItems/');
-            const foodMap = {};
-            foodRes.data.forEach(item => { foodMap[item.id] = item; });
-            const subtotal = itemsPayload.reduce((sum, item) => {
-                const food = foodMap[item.food_item];
-                return sum + (food ? food.price * item.quantity : 0);
-            }, 0);
-            const deliveryFee = subtotal > 150 ? 0 : 5;
-            // Create order in backend
-            const res = await api.post('/api/orders/', { items: itemsPayload });
-            const newOrderId = res.data.id;
-            const orderTotal = res.data.total_amount || (subtotal + deliveryFee);
-            const orderData = {
-                orderId: newOrderId,
-                subtotal,
-                deliveryFee,
-                totalAmount: orderTotal
-            };
-            localStorage.setItem('currentOrder', JSON.stringify(orderData));
-            navigate('/payment', { state: { orderData } });
+            // Navigate to payment with cart data (order will be created after payment)
+            navigate('/payment', { state: { cart } });
         } catch (err) {
-            console.error('Error updating profile or creating order:', err);
-            alert('Failed to update profile or create order.');
+            console.error('Error updating profile:', err);
+            alert('Failed to update profile.');
             setLoading(false);
         }
     };
@@ -256,431 +202,162 @@ function CustomerInfo() {
                 />
             </Box>
 
-            <Container maxWidth="xl" sx={{ py: 6, mt: -4, position: 'relative', zIndex: 2 }}>
-                <Grid container spacing={4}>
-                    {/* Main Content */}
-                    <Grid item xs={12} lg={8}>
-                        <Fade in timeout={600}>
-                            <Paper
-                                sx={{
-                                    borderRadius: 4,
-                                    backgroundColor: 'white',
-                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-                                    overflow: 'hidden'
-                                }}
-                            >
-                                {/* Header */}
-                                <Box
-                                    sx={{
-                                        background: 'linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%)',
-                                        p: 4,
-                                        borderBottom: '1px solid #e2e8f0'
-                                    }}
-                                >
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                            <Avatar
-                                                sx={{
-                                                    width: 56,
-                                                    height: 56,
-                                                    backgroundColor: '#06C167',
-                                                    mr: 3
-                                                }}
-                                            >
-                                                <Person sx={{ fontSize: 28 }} />
-                                            </Avatar>
-                                            <Box>
-                                                <Typography variant="h5" sx={{ fontWeight: 700, color: '#2d3748', mb: 0.5 }}>
-                                                    {editing ? 'Update Information' : 'Your Profile'}
-                                                </Typography>
-                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                    <Verified sx={{ color: '#06C167', fontSize: 18, mr: 1 }} />
-                                                    <Typography variant="body2" sx={{ color: '#718096' }}>
-                                                        Verified Account
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </Box>
-
-                                        {!editing && (
-                                            <Button
-                                                variant="outlined"
-                                                startIcon={<Edit />}
-                                                onClick={startEditing}
-                                                sx={{
-                                                    borderColor: '#06C167',
-                                                    color: '#06C167',
-                                                    borderRadius: 3,
-                                                    px: 3,
-                                                    py: 1.5,
-                                                    fontWeight: 600,
-                                                    '&:hover': {
-                                                        borderColor: '#048A47',
-                                                        backgroundColor: 'rgba(6, 193, 103, 0.1)'
-                                                    }
-                                                }}
-                                            >
-                                                Edit Details
-                                            </Button>
-                                        )}
-                                    </Box>
-                                </Box>
-
-                                {/* Content */}
-                                <Box sx={{ p: 4 }}>
-                                    {!editing ? (
-                                        <Slide direction="right" in={!editing} timeout={400}>
-                                            <Stack spacing={4}>
-                                                {/* Personal Info Section */}
-                                                <Box>
-                                                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#2d3748' }}>
-                                                        Personal Information
-                                                    </Typography>
-                                                    <Grid container spacing={3}>
-                                                        <Grid item xs={12} md={6}>
-                                                            <Card sx={{ backgroundColor: '#f8f9fa', boxShadow: 'none', border: '1px solid #e2e8f0' }}>
-                                                                <CardContent sx={{ p: 3 }}>
-                                                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                                                        <Person sx={{ color: '#06C167', mr: 2 }} />
-                                                                        <Typography variant="body2" sx={{ color: '#718096', fontWeight: 600 }}>
-                                                                            FULL NAME
-                                                                        </Typography>
-                                                                    </Box>
-                                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
-                                                                        {initialInfo.name}
-                                                                    </Typography>
-                                                                </CardContent>
-                                                            </Card>
-                                                        </Grid>
-                                                        <Grid item xs={12} md={6}>
-                                                            <Card sx={{ backgroundColor: '#f8f9fa', boxShadow: 'none', border: '1px solid #e2e8f0' }}>
-                                                                <CardContent sx={{ p: 3 }}>
-                                                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                                                                        <Phone sx={{ color: '#06C167', mr: 2 }} />
-                                                                        <Typography variant="body2" sx={{ color: '#718096', fontWeight: 600 }}>
-                                                                            PHONE NUMBER
-                                                                        </Typography>
-                                                                    </Box>
-                                                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
-                                                                        {initialInfo.mobile}
-                                                                    </Typography>
-                                                                </CardContent>
-                                                            </Card>
-                                                        </Grid>
-                                                    </Grid>
-                                                </Box>
-
-                                                <Divider />
-
-                                                {/* Delivery Address Section */}
-                                                <Box>
-                                                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#2d3748' }}>
-                                                        Delivery Address
-                                                    </Typography>
-                                                    <Card
-                                                        sx={{
-                                                            backgroundColor: '#f0fff4',
-                                                            border: '2px solid #06C167',
-                                                            boxShadow: 'none'
-                                                        }}
-                                                    >
-                                                        <CardContent sx={{ p: 4 }}>
-                                                            <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                                                                <LocationOn sx={{ color: '#06C167', mr: 3, mt: 0.5, fontSize: 28 }} />
-                                                                <Box sx={{ flexGrow: 1 }}>
-                                                                    <Typography variant="body2" sx={{ color: '#718096', fontWeight: 600, mb: 1 }}>
-                                                                        DELIVERY LOCATION
-                                                                    </Typography>
-                                                                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#2d3748', mb: 1 }}>
-                                                                        {initialInfo.hostelOrOffice}
-                                                                    </Typography>
-                                                                    <Typography variant="h6" sx={{ color: '#718096' }}>
-                                                                        Room {initialInfo.roomOrOfficeNumber}
-                                                                    </Typography>
-                                                                    <Chip
-                                                                        label="Primary Address"
-                                                                        size="small"
-                                                                        sx={{
-                                                                            mt: 2,
-                                                                            backgroundColor: '#06C167',
-                                                                            color: 'white',
-                                                                            fontWeight: 600
-                                                                        }}
-                                                                    />
-                                                                </Box>
-                                                            </Box>
-                                                        </CardContent>
-                                                    </Card>
-                                                </Box>
-                                            </Stack>
-                                        </Slide>
-                                    ) : (
-                                        <Slide direction="left" in={editing} timeout={400}>
-                                            <Stack spacing={4}>
-                                                <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
-                                                    Update Your Information
-                                                </Typography>
-
-                                                <Grid container spacing={3}>
-                                                    <Grid item xs={12}>
-                                                        <TextField
-                                                            required
-                                                            fullWidth
-                                                            label="Full Name"
-                                                            name="name"
-                                                            value={info.name}
-                                                            onChange={handleChange}
-                                                            slots={{
-                                                                startAdornment: () => (
-                                                                    <InputAdornment position="start">
-                                                                        <Person sx={{ color: '#718096' }} />
-                                                                    </InputAdornment>
-                                                                ),
-                                                            }}
-                                                            sx={{
-                                                                '& .MuiOutlinedInput-root': {
-                                                                    borderRadius: 3,
-                                                                    backgroundColor: '#f8f9fa',
-                                                                    '&:hover fieldset': {
-                                                                        borderColor: '#06C167',
-                                                                    },
-                                                                    '&.Mui-focused fieldset': {
-                                                                        borderColor: '#06C167',
-                                                                    }
-                                                                }
-                                                            }}
-                                                        />
-                                                    </Grid>
-
-                                                    <Grid item xs={12} md={6}>
-                                                        <TextField
-                                                            required
-                                                            fullWidth
-                                                            label="Hostel/Office Name"
-                                                            name="hostelOrOffice"
-                                                            value={info.hostelOrOffice}
-                                                            onChange={handleChange}
-                                                            slots={{
-                                                                startAdornment: () => (
-                                                                    <InputAdornment position="start">
-                                                                        <HomeIcon sx={{ color: '#718096' }} />
-                                                                    </InputAdornment>
-                                                                ),
-                                                            }}
-                                                            sx={{
-                                                                '& .MuiOutlinedInput-root': {
-                                                                    borderRadius: 3,
-                                                                    backgroundColor: '#f8f9fa'
-                                                                }
-                                                            }}
-                                                        />
-                                                    </Grid>
-
-                                                    <Grid item xs={12} md={6}>
-                                                        <TextField
-                                                            required
-                                                            fullWidth
-                                                            label="Room/Office Number"
-                                                            name="roomOrOfficeNumber"
-                                                            value={info.roomOrOfficeNumber}
-                                                            onChange={handleChange}
-                                                            slots={{
-                                                                startAdornment: () => (
-                                                                    <InputAdornment position="start">
-                                                                        <LocationOn sx={{ color: '#718096' }} />
-                                                                    </InputAdornment>
-                                                                ),
-                                                            }}
-                                                            sx={{
-                                                                '& .MuiOutlinedInput-root': {
-                                                                    borderRadius: 3,
-                                                                    backgroundColor: '#f8f9fa'
-                                                                }
-                                                            }}
-                                                        />
-                                                    </Grid>
-
-                                                    <Grid item xs={12}>
-                                                        <TextField
-                                                            required
-                                                            fullWidth
-                                                            label="Mobile Number"
-                                                            name="mobile"
-                                                            value={info.mobile}
-                                                            onChange={handleChange}
-                                                            slots={{
-                                                                startAdornment: () => (
-                                                                    <InputAdornment position="start">
-                                                                        <Phone sx={{ color: '#718096' }} />
-                                                                    </InputAdornment>
-                                                                ),
-                                                            }}
-                                                            sx={{
-                                                                '& .MuiOutlinedInput-root': {
-                                                                    borderRadius: 3,
-                                                                    backgroundColor: '#f8f9fa'
-                                                                }
-                                                            }}
-                                                        />
-                                                    </Grid>
-                                                </Grid>
-
-                                                <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
-                                                    <Button
-                                                        variant="contained"
-                                                        startIcon={<Save />}
-                                                        onClick={handleSave}
-                                                        sx={{
-                                                            backgroundColor: '#06C167',
-                                                            px: 4,
-                                                            py: 1.5,
-                                                            fontWeight: 600,
-                                                            borderRadius: 3,
-                                                            '&:hover': { backgroundColor: '#048A47' }
-                                                        }}
-                                                    >
-                                                        Save & Continue
-                                                    </Button>
-                                                    <Button
-                                                        variant="outlined"
-                                                        startIcon={<Cancel />}
-                                                        onClick={cancelEditing}
-                                                        sx={{
-                                                            borderColor: '#e2e8f0',
-                                                            color: '#718096',
-                                                            px: 4,
-                                                            py: 1.5,
-                                                            borderRadius: 3,
-                                                            '&:hover': {
-                                                                borderColor: '#cbd5e0',
-                                                                backgroundColor: '#f8f9fa'
-                                                            }
-                                                        }}
-                                                    >
-                                                        Cancel
-                                                    </Button>
-                                                </Box>
-                                            </Stack>
-                                        </Slide>
-                                    )}
-                                </Box>
-                            </Paper>
-                        </Fade>
-                    </Grid>
-
-                    {/* Sidebar */}
-                    <Grid item xs={12} lg={4}>
-                        <Box sx={{ position: 'sticky', top: 100 }}>
-                            <Fade in timeout={800}>
-                                <Paper
-                                    sx={{
-                                        borderRadius: 4,
-                                        backgroundColor: 'white',
-                                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-                                        overflow: 'hidden'
-                                    }}
-                                >
-                                    {/* Progress Header */}
-                                    <Box
+            <Container maxWidth="lg" sx={{ py: 6, mt: -4, position: 'relative', zIndex: 2 }}>
+                <Fade in timeout={600}>
+                    <Paper
+                        sx={{
+                            borderRadius: 4,
+                            backgroundColor: 'white',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        {/* Header */}
+                        <Box
+                            sx={{
+                                background: 'linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%)',
+                                p: 4,
+                                borderBottom: '1px solid #e2e8f0'
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Avatar
                                         sx={{
-                                            background: 'linear-gradient(135deg, #06C167 0%, #048A47 100%)',
-                                            color: 'white',
-                                            p: 4,
-                                            textAlign: 'center'
+                                            width: 56,
+                                            height: 56,
+                                            backgroundColor: '#06C167',
+                                            mr: 3
                                         }}
                                     >
-                                        <CheckCircle sx={{ fontSize: 48, mb: 2 }} />
-                                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
-                                            Almost Ready!
+                                        <Person sx={{ fontSize: 28 }} />
+                                    </Avatar>
+                                    <Box>
+                                        <Typography variant="h5" sx={{ fontWeight: 700, color: '#2d3748', mb: 0.5 }}>
+                                            {editing ? 'Update Information' : 'Your Profile'}
                                         </Typography>
-                                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                            Confirm your details to proceed
-                                        </Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Verified sx={{ color: '#06C167', fontSize: 18, mr: 1 }} />
+                                            <Typography variant="body2" sx={{ color: '#718096' }}>
+                                                Verified Account
+                                            </Typography>
+                                        </Box>
                                     </Box>
+                                </Box>
 
-                                    <Box sx={{ p: 4 }}>
-                                        {/* Progress Steps */}
-                                        <Stack spacing={3} sx={{ mb: 4 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                <Box
-                                                    sx={{
-                                                        width: 32,
-                                                        height: 32,
-                                                        borderRadius: '50%',
-                                                        backgroundColor: '#06C167',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        mr: 3
-                                                    }}
-                                                >
-                                                    <CheckCircle sx={{ color: 'white', fontSize: 20 }} />
-                                                </Box>
-                                                <Box>
-                                                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#2d3748' }}>
-                                                        Cart Ready
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ color: '#718096' }}>
-                                                        Items selected
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
+                                {!editing && (
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<Edit />}
+                                        onClick={startEditing}
+                                        sx={{
+                                            borderColor: '#06C167',
+                                            color: '#06C167',
+                                            borderRadius: 3,
+                                            px: 3,
+                                            py: 1.5,
+                                            fontWeight: 600,
+                                            '&:hover': {
+                                                borderColor: '#048A47',
+                                                backgroundColor: 'rgba(6, 193, 103, 0.1)'
+                                            }
+                                        }}
+                                    >
+                                        Edit Details
+                                    </Button>
+                                )}
+                            </Box>
+                        </Box>
 
-                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                <Box
-                                                    sx={{
-                                                        width: 32,
-                                                        height: 32,
-                                                        borderRadius: '50%',
-                                                        backgroundColor: '#06C167',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        mr: 3
-                                                    }}
-                                                >
-                                                    <Typography sx={{ color: 'white', fontWeight: 700 }}>2</Typography>
-                                                </Box>
-                                                <Box>
-                                                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#2d3748' }}>
-                                                        Delivery Info
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ color: '#718096' }}>
-                                                        Current step
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
+                        {/* Content */}
+                        <Box sx={{ p: 4 }}>
+                            {!editing ? (
+                                <Slide direction="right" in={!editing} timeout={400}>
+                                    <Stack spacing={4}>
+                                        {/* Personal Info Section */}
+                                        <Box>
+                                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#2d3748' }}>
+                                                Personal Information
+                                            </Typography>
+                                            <Grid container spacing={3}>
+                                                <Grid item xs={12} md={6}>
+                                                    <Card sx={{ backgroundColor: '#f8f9fa', boxShadow: 'none', border: '1px solid #e2e8f0' }}>
+                                                        <CardContent sx={{ p: 3 }}>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                                                <Person sx={{ color: '#06C167', mr: 2 }} />
+                                                                <Typography variant="body2" sx={{ color: '#718096', fontWeight: 600 }}>
+                                                                    FULL NAME
+                                                                </Typography>
+                                                            </Box>
+                                                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
+                                                                {initialInfo.name}
+                                                            </Typography>
+                                                        </CardContent>
+                                                    </Card>
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Card sx={{ backgroundColor: '#f8f9fa', boxShadow: 'none', border: '1px solid #e2e8f0' }}>
+                                                        <CardContent sx={{ p: 3 }}>
+                                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                                                <Phone sx={{ color: '#06C167', mr: 2 }} />
+                                                                <Typography variant="body2" sx={{ color: '#718096', fontWeight: 600 }}>
+                                                                    PHONE NUMBER
+                                                                </Typography>
+                                                            </Box>
+                                                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
+                                                                {initialInfo.mobile}
+                                                            </Typography>
+                                                        </CardContent>
+                                                    </Card>
+                                                </Grid>
+                                            </Grid>
+                                        </Box>
 
-                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                <Box
-                                                    sx={{
-                                                        width: 32,
-                                                        height: 32,
-                                                        borderRadius: '50%',
-                                                        backgroundColor: '#e2e8f0',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        mr: 3
-                                                    }}
-                                                >
-                                                    <Typography sx={{ color: '#718096', fontWeight: 700 }}>3</Typography>
-                                                </Box>
-                                                <Box>
-                                                    <Typography variant="body1" sx={{ fontWeight: 600, color: '#a0aec0' }}>
-                                                        Place Order
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ color: '#a0aec0' }}>
-                                                        Final step
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                        </Stack>
+                                        <Divider />
 
-                                        <Divider sx={{ my: 3 }} />
+                                        {/* Delivery Address Section */}
+                                        <Box>
+                                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#2d3748' }}>
+                                                Delivery Address
+                                            </Typography>
+                                            <Card
+                                                sx={{
+                                                    backgroundColor: '#f0fff4',
+                                                    border: '2px solid #06C167',
+                                                    boxShadow: 'none'
+                                                }}
+                                            >
+                                                <CardContent sx={{ p: 4 }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                                                        <LocationOn sx={{ color: '#06C167', mr: 3, mt: 0.5, fontSize: 28 }} />
+                                                        <Box sx={{ flexGrow: 1 }}>
+                                                            <Typography variant="body2" sx={{ color: '#718096', fontWeight: 600, mb: 1 }}>
+                                                                DELIVERY LOCATION
+                                                            </Typography>
+                                                            <Typography variant="h5" sx={{ fontWeight: 700, color: '#2d3748', mb: 1 }}>
+                                                                {initialInfo.hostelOrOffice}
+                                                            </Typography>
+                                                            <Typography variant="h6" sx={{ color: '#718096' }}>
+                                                                Room {initialInfo.roomOrOfficeNumber}
+                                                            </Typography>
+                                                            <Chip
+                                                                label="Primary Address"
+                                                                size="small"
+                                                                sx={{
+                                                                    mt: 2,
+                                                                    backgroundColor: '#06C167',
+                                                                    color: 'white',
+                                                                    fontWeight: 600
+                                                                }}
+                                                            />
+                                                        </Box>
+                                                    </Box>
+                                                </CardContent>
+                                            </Card>
+                                        </Box>
 
-                                        {/* Action Button */}
-                                        {!editing && (
+                                        {/* Continue to Order Button */}
+                                        <Box sx={{ pt: 2 }}>
                                             <Button
                                                 fullWidth
                                                 variant="contained"
@@ -703,32 +380,161 @@ function CustomerInfo() {
                                             >
                                                 Continue to Order
                                             </Button>
-                                        )}
+                                        </Box>
+                                    </Stack>
+                                </Slide>
+                            ) : (
+                                <Slide direction="left" in={editing} timeout={400}>
+                                    <Stack spacing={4}>
+                                        <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
+                                            Update Your Information
+                                        </Typography>
 
-                                        {/* Help Section */}
-                                        <Box sx={{ mt: 4, textAlign: 'center' }}>
-                                            <Typography variant="body2" sx={{ color: '#718096', mb: 2 }}>
-                                                Need help with your delivery?
-                                            </Typography>
+                                        <Grid container spacing={3}>
+                                            <Grid item xs={12}>
+                                                <TextField
+                                                    required
+                                                    fullWidth
+                                                    label="Full Name"
+                                                    name="name"
+                                                    value={info.name}
+                                                    onChange={handleChange}
+                                                    slots={{
+                                                        startAdornment: () => (
+                                                            <InputAdornment position="start">
+                                                                <Person sx={{ color: '#718096' }} />
+                                                            </InputAdornment>
+                                                        ),
+                                                    }}
+                                                    sx={{
+                                                        '& .MuiOutlinedInput-root': {
+                                                            borderRadius: 3,
+                                                            backgroundColor: '#f8f9fa',
+                                                            '&:hover fieldset': {
+                                                                borderColor: '#06C167',
+                                                            },
+                                                            '&.Mui-focused fieldset': {
+                                                                borderColor: '#06C167',
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                            </Grid>
+
+                                            <Grid item xs={12} md={6}>
+                                                <TextField
+                                                    required
+                                                    fullWidth
+                                                    label="Hostel/Office Name"
+                                                    name="hostelOrOffice"
+                                                    value={info.hostelOrOffice}
+                                                    onChange={handleChange}
+                                                    slots={{
+                                                        startAdornment: () => (
+                                                            <InputAdornment position="start">
+                                                                <HomeIcon sx={{ color: '#718096' }} />
+                                                            </InputAdornment>
+                                                        ),
+                                                    }}
+                                                    sx={{
+                                                        '& .MuiOutlinedInput-root': {
+                                                            borderRadius: 3,
+                                                            backgroundColor: '#f8f9fa'
+                                                        }
+                                                    }}
+                                                />
+                                            </Grid>
+
+                                            <Grid item xs={12} md={6}>
+                                                <TextField
+                                                    required
+                                                    fullWidth
+                                                    label="Room/Office Number"
+                                                    name="roomOrOfficeNumber"
+                                                    value={info.roomOrOfficeNumber}
+                                                    onChange={handleChange}
+                                                    slots={{
+                                                        startAdornment: () => (
+                                                            <InputAdornment position="start">
+                                                                <LocationOn sx={{ color: '#718096' }} />
+                                                            </InputAdornment>
+                                                        ),
+                                                    }}
+                                                    sx={{
+                                                        '& .MuiOutlinedInput-root': {
+                                                            borderRadius: 3,
+                                                            backgroundColor: '#f8f9fa'
+                                                        }
+                                                    }}
+                                                />
+                                            </Grid>
+
+                                            <Grid item xs={12}>
+                                                <TextField
+                                                    required
+                                                    fullWidth
+                                                    label="Mobile Number"
+                                                    name="mobile"
+                                                    value={info.mobile}
+                                                    onChange={handleChange}
+                                                    slots={{
+                                                        startAdornment: () => (
+                                                            <InputAdornment position="start">
+                                                                <Phone sx={{ color: '#718096' }} />
+                                                            </InputAdornment>
+                                                        ),
+                                                    }}
+                                                    sx={{
+                                                        '& .MuiOutlinedInput-root': {
+                                                            borderRadius: 3,
+                                                            backgroundColor: '#f8f9fa'
+                                                        }
+                                                    }}
+                                                />
+                                            </Grid>
+                                        </Grid>
+
+                                        <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
                                             <Button
-                                                variant="text"
-                                                size="small"
-                                                href="tel:0240235033"
+                                                variant="contained"
+                                                startIcon={<Save />}
+                                                onClick={handleSave}
                                                 sx={{
-                                                    color: '#06C167',
+                                                    backgroundColor: '#06C167',
+                                                    px: 4,
+                                                    py: 1.5,
                                                     fontWeight: 600,
-                                                    '&:hover': { backgroundColor: 'rgba(6, 193, 103, 0.1)' }
+                                                    borderRadius: 3,
+                                                    '&:hover': { backgroundColor: '#048A47' }
                                                 }}
                                             >
-                                                Call Support: 0240 235 033
+                                                Save & Continue
+                                            </Button>
+                                            <Button
+                                                variant="outlined"
+                                                startIcon={<Cancel />}
+                                                onClick={cancelEditing}
+                                                sx={{
+                                                    borderColor: '#e2e8f0',
+                                                    color: '#718096',
+                                                    px: 4,
+                                                    py: 1.5,
+                                                    borderRadius: 3,
+                                                    '&:hover': {
+                                                        borderColor: '#cbd5e0',
+                                                        backgroundColor: '#f8f9fa'
+                                                    }
+                                                }}
+                                            >
+                                                Cancel
                                             </Button>
                                         </Box>
-                                    </Box>
-                                </Paper>
-                            </Fade>
+                                    </Stack>
+                                </Slide>
+                            )}
                         </Box>
-                    </Grid>
-                </Grid>
+                    </Paper>
+                </Fade>
             </Container>
         </div>
     );

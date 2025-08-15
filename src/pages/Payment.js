@@ -51,11 +51,16 @@ function Payment() {
     
     // Calculate order details from cart
     const [orderDetails, setOrderDetails] = useState(null);
+    const [initializingOrder, setInitializingOrder] = useState(true);
 
     // Calculate order details on component mount
     useEffect(() => {
         const calculateOrderDetails = async () => {
-            if (!cart || Object.keys(cart).length === 0) return;
+            setInitializingOrder(true);
+            if (!cart || Object.keys(cart).length === 0) {
+                setInitializingOrder(false);
+                return;
+            }
             
             try {
                 // Fetch food items for price lookup
@@ -84,8 +89,9 @@ function Payment() {
                     totalAmount
                 });
             } catch (err) {
-                console.error('Error calculating order details:', err);
                 setError('Failed to calculate order details. Please try again.');
+            } finally {
+                setInitializingOrder(false);
             }
         };
         
@@ -101,7 +107,6 @@ function Payment() {
                 setRegisteredPhone(response.data.phone_number || '');
                 setPhoneNumber(response.data.phone_number || '');
             } catch (error) {
-                console.error('Error fetching user profile:', error);
                 setError('Failed to load user profile');
             }
         };
@@ -144,7 +149,6 @@ function Payment() {
                             navigate('/delivery-status');
                         }, 2000);
                     } catch (orderError) {
-                        console.error('Order update error:', orderError);
                         setError('Payment successful but order update failed. Please contact support.');
                     }
                 } else {
@@ -157,7 +161,7 @@ function Payment() {
                     try {
                         await api.delete(`/api/orders/${tempOrderId}/`);
                     } catch (deleteError) {
-                        console.error('Failed to delete temporary order:', deleteError);
+                        // ignore
                     }
                     localStorage.removeItem('tempOrderId');
                 }
@@ -165,15 +169,13 @@ function Payment() {
                 setError(response.data.message || 'Payment verification failed');
             }
         } catch (error) {
-            console.error('Payment verification error:', error);
-            
             // Payment verification failed - delete the temporary order
             const tempOrderId = localStorage.getItem('tempOrderId');
             if (tempOrderId) {
                 try {
                     await api.delete(`/api/orders/${tempOrderId}/`);
                 } catch (deleteError) {
-                    console.error('Failed to delete temporary order:', deleteError);
+                    // ignore
                 }
                 localStorage.removeItem('tempOrderId');
             }
@@ -193,8 +195,9 @@ function Payment() {
         const urlParams = new URLSearchParams(window.location.search);
         const reference = urlParams.get('reference');
         const status = urlParams.get('status');
+        const storedReference = localStorage.getItem('paymentReference');
         
-        if (reference && status) {
+        if (reference && status && storedReference && storedReference === reference) {
             if (status === 'success') {
                 verifyPayment(reference);
             } else {
@@ -225,10 +228,6 @@ function Payment() {
     const handlePaymentMethodChange = (event) => {
         setPaymentMethod(event.target.value);
         setError('');
-        
-        if (event.target.value === 'momo' && !registeredPhone) {
-            setPhoneOption('new');
-        }
     };
 
     const handlePhoneOptionChange = (event) => {
@@ -266,13 +265,13 @@ function Payment() {
             // Create a temporary order first to get an order_id for payment
             const tempOrderRes = await api.post('/api/orders/', { 
                 items: orderDetails.itemsPayload,
-                status: 'PENDING_PAYMENT' // Add status to indicate this is a pending order
+                status: 'PENDING_PAYMENT'
             });
             
             const tempOrderId = tempOrderRes.data.id;
             
             const paymentData = {
-                order_id: tempOrderId, // Include the temporary order_id
+                order_id: tempOrderId,
                 payment_method: paymentMethod,
                 email: userEmail,
                 amount: orderDetails.totalAmount
@@ -297,7 +296,6 @@ function Payment() {
                 setError('Failed to initiate payment. Please try again.');
             }
         } catch (error) {
-            console.error('Payment initiation error:', error);
             setError(
                 error.response?.data?.message || 
                 error.response?.data?.detail || 
@@ -368,6 +366,16 @@ function Payment() {
     }
 
     if (!orderDetails) {
+        if (initializingOrder) {
+            return (
+                <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+                    <Navbar />
+                    <Container maxWidth="md" sx={{ py: 6, textAlign: 'center' }}>
+                        <CircularProgress />
+                    </Container>
+                </div>
+            );
+        }
         return (
             <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
                 <Navbar />

@@ -52,7 +52,6 @@ function Shop() {
                 const res = await api.get("/api/foodItems/");
                 setFoodItems(res.data);
             } catch (err) {
-                console.error("Error fetching foodItems:", err);
                 setError("Failed to load menu items. Please try again.");
             } finally {
                 setLoading(false);

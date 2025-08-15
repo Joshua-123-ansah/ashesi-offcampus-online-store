@@ -27,7 +27,6 @@ function ProtectedRoute({children}) {
                 setIsAuthenticated(false);
             }
         } catch (e) {
-            console.error('Token refresh failed:', e);
             localStorage.removeItem(ACCESS_TOKEN);
             localStorage.removeItem(REFRESH_TOKEN);
             setIsAuthenticated(false);
@@ -52,7 +51,6 @@ function ProtectedRoute({children}) {
                 setIsAuthenticated(true);
             }
         } catch (error) {
-            console.error('Token validation failed:', error);
             localStorage.removeItem(ACCESS_TOKEN);
             localStorage.removeItem(REFRESH_TOKEN);
             setIsAuthenticated(false);

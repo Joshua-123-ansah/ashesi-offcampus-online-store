@@ -115,8 +115,8 @@ function Login() {
                             type="text"
                             value={formData.username}
                             onChange={handleChange}
-                            InputProps={{
-                                startAdornment: (
+                            slots={{
+                                startAdornment: () => (
                                     <InputAdornment position="start">
                                         <Person sx={{ color: '#718096' }} />
                                     </InputAdornment>
@@ -138,13 +138,13 @@ function Login() {
                             type={showPassword ? 'text' : 'password'}
                             value={formData.password}
                             onChange={handleChange}
-                            InputProps={{
-                                startAdornment: (
+                            slots={{
+                                startAdornment: () => (
                                     <InputAdornment position="start">
                                         <Lock sx={{ color: '#718096' }} />
                                     </InputAdornment>
                                 ),
-                                endAdornment: (
+                                endAdornment: () => (
                                     <InputAdornment position="end">
                                         <IconButton
                                             onClick={() => setShowPassword(!showPassword)}

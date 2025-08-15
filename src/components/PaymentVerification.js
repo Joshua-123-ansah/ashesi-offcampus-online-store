@@ -61,7 +61,6 @@ function PaymentVerification() {
                     setMessage(response.data.message || 'Payment verification failed. Please contact support.');
                 }
             } catch (error) {
-                console.error('Payment verification error:', error);
                 setStatus('failed');
                 setMessage(
                     error.response?.data?.message || 

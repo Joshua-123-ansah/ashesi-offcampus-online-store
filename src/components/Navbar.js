@@ -36,7 +36,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { ACCESS_TOKEN } from '../Constants';
+import { ACCESS_TOKEN, REFRESH_TOKEN } from '../Constants';
 import api from '../api';
 
 function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
@@ -65,7 +65,6 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
             const now = Date.now() / 1000;
 
             if (tokenExpiration < now) {
-                // Token expired
                 setIsAuthenticated(false);
                 setUserInfo(null);
                 localStorage.removeItem(ACCESS_TOKEN);
@@ -73,10 +72,8 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
             }
 
             setIsAuthenticated(true);
-            // Fetch user profile if authenticated
             await fetchUserProfile();
         } catch (error) {
-            console.error('Error checking auth status:', error);
             setIsAuthenticated(false);
             setUserInfo(null);
         }
@@ -93,8 +90,6 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
             const response = await api.get('/api/profile/');
             setUserInfo(response.data);
         } catch (error) {
-            console.error('Error fetching user profile:', error);
-            // If profile fetch fails, user might not be properly authenticated
             setIsAuthenticated(false);
             setUserInfo(null);
         } finally {}
@@ -115,7 +110,7 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
 
     const handleLogout = () => {
         localStorage.removeItem(ACCESS_TOKEN);
-        localStorage.removeItem('refresh');
+        localStorage.removeItem(REFRESH_TOKEN);
         localStorage.removeItem('cart');
         localStorage.removeItem('lastOrderId');
         setIsAuthenticated(false);

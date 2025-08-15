@@ -111,6 +111,8 @@ function DeliveryStatus() {
     const [error, setError] = useState(null);
     const [estimatedTime, setEstimatedTime] = useState('20-30');
 
+    const activeStepIndex = statusMap[orderStatus?.status] ?? 0;
+
     const fetchLatestOrder = useCallback(async () => {
         try {
             setLoading(true);
@@ -147,6 +149,8 @@ function DeliveryStatus() {
                     setOrderId(null);
                     setOrderStatus(null);
                 }
+                // Clear loading after successful processing
+                setLoading(false);
             } else {
                 setError('You don\'t have any orders yet. Start shopping to place your first order!');
                 setLoading(false);
@@ -253,7 +257,8 @@ function DeliveryStatus() {
         fetchOrderStatus();
     }, [orderId]);
 
-    if (loading) {
+    // Only show the global loader when we have no order data yet
+    if (loading && !orderId && !orderStatus) {
         return (
             <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
                 <Navbar/>
@@ -447,7 +452,7 @@ function DeliveryStatus() {
                             <Box sx={{ mb: 4 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                     <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
-                                        {steps[orderStatus?.status ? statusMap[orderStatus.status] : 0].label}
+                                        {steps[activeStepIndex].label}
                                     </Typography>
                                     {orderStatus?.status !== 'DELIVERED' && (
                                         <Chip
@@ -461,13 +466,13 @@ function DeliveryStatus() {
                                     )}
                                 </Box>
                                 <Typography variant="body1" sx={{ color: '#718096', mb: 3 }}>
-                                    {getStatusMessage(orderStatus?.status ? statusMap[orderStatus.status] : 0)}
+                                    {getStatusMessage(activeStepIndex)}
                                 </Typography>
 
-                                {orderStatus?.status !== 'DELIVERED' && (
+                                {orderStatus?.status && orderStatus.status !== 'DELIVERED' && (
                                     <LinearProgress
                                         variant="determinate"
-                                        value={(statusMap[orderStatus.status] + 1) * 25}
+                                        value={(activeStepIndex + 1) * 25}
                                         sx={{
                                             height: 8,
                                             borderRadius: 4,
@@ -481,7 +486,7 @@ function DeliveryStatus() {
                                 )}
                             </Box>
 
-                            <Stepper activeStep={orderStatus?.status ? statusMap[orderStatus.status] : 0} orientation="vertical">
+                            <Stepper activeStep={activeStepIndex} orientation="vertical">
                                 {steps.map((step, index) => (
                                     <Step key={step.label}>
                                         <StepLabel
@@ -491,7 +496,7 @@ function DeliveryStatus() {
                                                         width: 48,
                                                         height: 48,
                                                         borderRadius: '50%',
-                                                        backgroundColor: getStatusColor(index, orderStatus?.status ? statusMap[orderStatus.status] : 0),
+                                                        backgroundColor: getStatusColor(index, activeStepIndex),
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
@@ -508,7 +513,7 @@ function DeliveryStatus() {
                                                     variant="h6"
                                                     sx={{
                                                         fontWeight: 600,
-                                                        color: index <= (orderStatus?.status ? statusMap[orderStatus.status] : 0) ? '#2d3748' : '#a0aec0'
+                                                        color: index <= activeStepIndex ? '#2d3748' : '#a0aec0'
                                                     }}
                                                 >
                                                     {step.label}
@@ -516,7 +521,7 @@ function DeliveryStatus() {
                                                 <Typography
                                                     variant="body2"
                                                     sx={{
-                                                        color: index <= (orderStatus?.status ? statusMap[orderStatus.status] : 0) ? '#718096' : '#a0aec0'
+                                                        color: index <= activeStepIndex ? '#718096' : '#a0aec0'
                                                     }}
                                                 >
                                                     {step.description}

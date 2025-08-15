@@ -530,8 +530,8 @@ function SignUp() {
                                     value={formData.email}
                                     onChange={handleChange}
                                     placeholder="your.email@ashesi.edu.gh"
-                                    InputProps={{
-                                        startAdornment: (
+                                    slots={{
+                                        startAdornment: () => (
                                             <InputAdornment position="start">
                                                 <Email sx={{ color: '#718096' }} />
                                             </InputAdornment>
@@ -555,8 +555,8 @@ function SignUp() {
                                     placeholder="+233 xxx xxx xxx"
                                     value={formData.phone}
                                     onChange={handleChange}
-                                    InputProps={{
-                                        startAdornment: (
+                                    slots={{
+                                        startAdornment: () => (
                                             <InputAdornment position="start">
                                                 <Phone sx={{ color: '#718096' }} />
                                             </InputAdornment>
@@ -606,8 +606,8 @@ function SignUp() {
                                     value={formData.hostelOrOfficeName}
                                     onChange={handleChange}
                                     placeholder="e.g., New Dorm, Admin Block"
-                                    InputProps={{
-                                        startAdornment: (
+                                    slots={{
+                                        startAdornment: () => (
                                             <InputAdornment position="start">
                                                 <HomeIcon sx={{ color: '#718096' }} />
                                             </InputAdornment>
@@ -676,13 +676,13 @@ function SignUp() {
                                     value={formData.password}
                                     onChange={handleChange}
                                     placeholder="Create a strong password"
-                                    InputProps={{
-                                        startAdornment: (
+                                    slots={{
+                                        startAdornment: () => (
                                             <InputAdornment position="start">
                                                 <Lock sx={{ color: '#718096' }} />
                                             </InputAdornment>
                                         ),
-                                        endAdornment: (
+                                        endAdornment: () => (
                                             <InputAdornment position="end">
                                                 <IconButton
                                                     onClick={() => setShowPassword(!showPassword)}
@@ -733,8 +733,8 @@ function SignUp() {
                                             ? 'Passwords do not match'
                                             : ''
                                     }
-                                    InputProps={{
-                                        endAdornment: (
+                                    slots={{
+                                        endAdornment: () => (
                                             <InputAdornment position="end">
                                                 <IconButton
                                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}

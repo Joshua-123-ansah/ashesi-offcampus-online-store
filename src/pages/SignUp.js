@@ -69,7 +69,8 @@ function SignUp() {
     }, [searchParams]);
 
     const usernameRegex = /^[A-Za-z0-9@.+\-_]{1,150}$/;
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    // Require at least 8 chars, one lowercase, one uppercase, one number, and one special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?`~])[A-Za-z\d!@#$%^&*()_+\-=[\]{};':"\\|,.<>?`~]{8,}$/;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -99,7 +100,7 @@ function SignUp() {
             return;
         }
         if (!passwordValid) {
-            alert('Password must be at least 8 characters and include letters and numbers.');
+            alert('Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.');
             setIsLoading(false);
             return;
         }
@@ -714,7 +715,7 @@ function SignUp() {
                                     >
                                         {passwordValid
                                             ? '✓ Password meets security requirements'
-                                            : 'Password must be at least 8 characters with letters and numbers'}
+                                            : 'Password must be at least 8 characters and include uppercase, lowercase, number, and symbol'}
                                     </Alert>
                                 )}
 

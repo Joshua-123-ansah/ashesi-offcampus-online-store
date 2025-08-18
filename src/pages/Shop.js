@@ -65,6 +65,28 @@ function Shop() {
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
 
+    // Sync cart state from localStorage when returning to this page or when storage changes
+    useEffect(() => {
+        const syncFromStorage = () => {
+            const storedCart = JSON.parse(localStorage.getItem('cart') || 'null') || {};
+            setCart(storedCart);
+        };
+
+        const onVisibilityChange = () => {
+            if (!document.hidden) syncFromStorage();
+        };
+
+        window.addEventListener('focus', syncFromStorage);
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        window.addEventListener('storage', syncFromStorage);
+
+        return () => {
+            window.removeEventListener('focus', syncFromStorage);
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+            window.removeEventListener('storage', syncFromStorage);
+        };
+    }, []);
+
     // Handle cart click - always use current cart from localStorage
     const handleCartClick = () => {
         const currentCart = JSON.parse(localStorage.getItem('cart') || 'null') || {};

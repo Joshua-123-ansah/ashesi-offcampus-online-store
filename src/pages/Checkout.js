@@ -34,6 +34,16 @@ function Checkout() {
     const [error, setError] = useState(null);
     const [localCart, setLocalCart] = useState(cart);
 
+    // Persist cart changes to localStorage so Shop badge/UI stay in sync
+    useEffect(() => {
+        const keys = Object.keys(localCart || {});
+        if (keys.length === 0) {
+            localStorage.removeItem('cart');
+        } else {
+            localStorage.setItem('cart', JSON.stringify(localCart));
+        }
+    }, [localCart]);
+
     useEffect(() => {
         const fetchCartItems = async () => {
             try {
@@ -43,7 +53,6 @@ function Checkout() {
                 const cartItems = res.data.filter(item => cart[item.id]);
                 setItems(cartItems);
             } catch (err) {
-                console.error('Failed to load cart items:', err);
                 setError('Failed to load your cart items. Please try again.');
             } finally {
                 setLoading(false);

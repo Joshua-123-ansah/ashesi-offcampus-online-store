@@ -13,6 +13,9 @@ import NotFoundPage from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
 import PaymentVerification from "./components/PaymentVerification";
+import Dashboard from "./pages/Dashboard";
+import FoodManagement from "./pages/FoodManagement";
+import OrderManagement from "./pages/OrderManagement";
 
 function RegisterAndLogout() {
     return <SignUp />;
@@ -47,8 +50,23 @@ function App() {
                 <DeliveryStatus />
                 </ProtectedRoute>
             } />
-            <Route path="*" element={<NotFoundPage />} />
+            <Route path="/dashboard" element={
+                <ProtectedRoute allowedRoles={['super_admin']}>
+                    <Dashboard />
+                </ProtectedRoute>
+            } />
+            <Route path="/dashboard/food" element={
+                <ProtectedRoute allowedRoles={['super_admin']}>
+                    <FoodManagement />
+                </ProtectedRoute>
+            } />
+            <Route path="/orders/manage" element={
+                <ProtectedRoute allowedRoles={['super_admin', 'employee', 'cook']}>
+                    <OrderManagement />
+                </ProtectedRoute>
+            } />
             <Route path="/reset-password" element = {<ResetPassword/>} />
+            <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
   );

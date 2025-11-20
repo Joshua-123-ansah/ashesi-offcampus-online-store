@@ -32,12 +32,15 @@ import {
     Phone,
     LocationOn,
     Email,
-    Close
+    Close,
+    Restaurant,
+    Launch,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../Constants';
+import { ACCESS_TOKEN, REFRESH_TOKEN, USER_PROFILE, USER_ROLE } from '../Constants';
 import api from '../api';
+import { getDefaultRouteForRole, getRoleLabel } from '../utils/roleUtils';
 
 function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
     const navigate = useNavigate();
@@ -89,6 +92,10 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
         try {
             const response = await api.get('/api/profile/');
             setUserInfo(response.data);
+            localStorage.setItem(USER_PROFILE, JSON.stringify(response.data));
+            if (response.data?.role) {
+                localStorage.setItem(USER_ROLE, response.data.role);
+            }
         } catch (error) {
             setIsAuthenticated(false);
             setUserInfo(null);
@@ -113,6 +120,8 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
         localStorage.removeItem(REFRESH_TOKEN);
         localStorage.removeItem('cart');
         localStorage.removeItem('lastOrderId');
+        localStorage.removeItem(USER_PROFILE);
+        localStorage.removeItem(USER_ROLE);
         setIsAuthenticated(false);
         setUserInfo(null);
         handleClose();
@@ -134,7 +143,13 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
         navigate('/customer-info');
     };
 
-    const goHome = () => navigate('/');
+    const goHome = () => {
+        if (isAuthenticated && userInfo?.role) {
+            navigate(getDefaultRouteForRole(userInfo.role));
+        } else {
+            navigate('/');
+        }
+    };
     const handleCartClick = () => onCartClick ? onCartClick() : navigate('/checkout');
 
     const getInitials = (firstName, lastName) => {
@@ -179,16 +194,31 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
                                 >
                                     {userInfo.first_name} {userInfo.last_name}
                                 </Typography>
-                                <Chip
-                                    label="Verified"
-                                    size="small"
-                                    sx={{
-                                        backgroundColor: '#06C167',
-                                        color: 'white',
-                                        fontSize: '0.75rem',
-                                        height: 20
-                                    }}
-                                />
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                    {userInfo.role && (
+                                        <Chip
+                                            label={getRoleLabel(userInfo.role)}
+                                            size="small"
+                                            sx={{
+                                                backgroundColor: '#E6FFFA',
+                                                color: '#048A47',
+                                                fontSize: '0.75rem',
+                                                height: 20,
+                                                fontWeight: 600
+                                            }}
+                                        />
+                                    )}
+                                    <Chip
+                                        label="Verified"
+                                        size="small"
+                                        sx={{
+                                            backgroundColor: '#06C167',
+                                            color: 'white',
+                                            fontSize: '0.75rem',
+                                            height: 20
+                                        }}
+                                    />
+                                </Box>
                             </Box>
                         </Box>
 
@@ -239,6 +269,42 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
                     <Divider />
 
                     {/* Menu Items */}
+                    {userInfo.role === 'super_admin' && (
+                        <>
+                            <MenuItem onClick={() => navigate('/dashboard')} sx={{ py: { xs: 1.5, sm: 1.5 }, px: { xs: 2, sm: 3 } }}>
+                                <ListItemIcon>
+                                    <Home fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText>
+                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                        Dashboard
+                                    </Typography>
+                                </ListItemText>
+                            </MenuItem>
+                            <MenuItem onClick={() => navigate('/dashboard/food')} sx={{ py: { xs: 1.5, sm: 1.5 }, px: { xs: 2, sm: 3 } }}>
+                                <ListItemIcon>
+                                    <Restaurant fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText>
+                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                        Manage Menu
+                                    </Typography>
+                                </ListItemText>
+                            </MenuItem>
+                        </>
+                    )}
+                    {['super_admin', 'employee', 'cook'].includes(userInfo.role) && (
+                        <MenuItem onClick={() => navigate('/orders/manage')} sx={{ py: { xs: 1.5, sm: 1.5 }, px: { xs: 2, sm: 3 } }}>
+                            <ListItemIcon>
+                                <ShoppingCart fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    Manage Orders
+                                </Typography>
+                            </ListItemText>
+                        </MenuItem>
+                    )}
                     <MenuItem onClick={handleProfile} sx={{ py: { xs: 1.5, sm: 1.5 }, px: { xs: 2, sm: 3 } }}>
                         <ListItemIcon>
                             <Settings fontSize="small" />
@@ -252,7 +318,7 @@ function Navbar({ title, showCartButton = false, cartCount = 0, onCartClick }) {
 
                     <MenuItem onClick={() => navigate('/delivery-status')} sx={{ py: { xs: 1.5, sm: 1.5 }, px: { xs: 2, sm: 3 } }}>
                         <ListItemIcon>
-                            <ShoppingCart fontSize="small" />
+                            <Launch fontSize="small" />
                         </ListItemIcon>
                         <ListItemText>
                             <Typography variant="body1" sx={{ fontWeight: 500 }}>

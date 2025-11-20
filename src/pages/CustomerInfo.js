@@ -84,9 +84,6 @@ function CustomerInfo() {
         setInfo((prev) => ({ ...prev, [name]: value }));
     };
 
-    // Helper function to create order - REMOVED (will be handled after payment)
-    // const createOrder = async () => { ... } - REMOVED
-
     // 2) Continue with saved info
     const handleContinue = async () => {
         // Just navigate to payment with cart data

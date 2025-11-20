@@ -16,7 +16,7 @@ import { Visibility, VisibilityOff, Person, Lock } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import api from "../api";
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../Constants";
+import { ACCESS_TOKEN, REFRESH_TOKEN, USER_ROLE, USER_PROFILE } from "../Constants";
 
 function Login() {
     const [formData, setFormData] = useState({
@@ -47,18 +47,27 @@ function Login() {
             });
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-            
-            // Check if user is coming from checkout flow (has redirectTo in state)
-            if (location.state?.redirectTo) {
-                navigate(location.state.redirectTo);
-            } 
-            // Check if this is a new user who just created an account
-            else if (location.state?.isNewUser) {
-                navigate('/customer-info');
-            } 
-            // For direct login, send to menu page
-            else {
-                navigate('/shop/cassa');
+
+            // Fetch user profile to determine role-based navigation
+            const profileRes = await api.get('/api/profile/');
+            const userProfile = profileRes.data;
+            localStorage.setItem(USER_PROFILE, JSON.stringify(userProfile));
+            localStorage.setItem(USER_ROLE, userProfile.role);
+
+            const redirectTo = location.state?.redirectTo;
+
+            if (userProfile.role === 'super_admin') {
+                navigate('/dashboard');
+            } else if (userProfile.role === 'employee' || userProfile.role === 'cook') {
+                navigate('/orders/manage');
+            } else {
+                if (redirectTo) {
+                    navigate(redirectTo);
+                } else if (location.state?.isNewUser) {
+                    navigate('/customer-info');
+                } else {
+                    navigate('/shop/cassa');
+                }
             }
         } catch (err) {
             setError(err.response?.data?.detail || 'Login failed. Please try again.');

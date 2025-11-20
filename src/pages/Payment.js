@@ -80,6 +80,7 @@ function Payment() {
                 }, 0);
                 
                 const deliveryFee = subtotal > 150 ? 0 : 5;
+               
                 const totalAmount = subtotal + deliveryFee;
                 
                 setOrderDetails({

@@ -1,5 +1,5 @@
 // src/pages/DeliveryStatus.js
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
     Container,
     Box,
@@ -110,6 +110,12 @@ function DeliveryStatus() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [estimatedTime, setEstimatedTime] = useState('20-30');
+    const orderStatusRef = useRef(orderStatus);
+
+    // Keep ref in sync with state
+    useEffect(() => {
+        orderStatusRef.current = orderStatus;
+    }, [orderStatus]);
 
     const activeStepIndex = statusMap[orderStatus?.status] ?? 0;
 
@@ -140,11 +146,17 @@ function DeliveryStatus() {
                 }
                 
                 if (activeOrder) {
-                    setOrderId(activeOrder.id);
-                    setOrderStatus(null);
+                    // Only update orderId if it changed, preserve orderStatus
+                    if (orderId !== activeOrder.id) {
+                        setOrderId(activeOrder.id);
+                        setOrderStatus(null);
+                    }
                 } else if (mostRecentDeliveredOrder) {
-                    setOrderId(mostRecentDeliveredOrder.id);
-                    setOrderStatus(null);
+                    // Only update orderId if it changed, preserve orderStatus
+                    if (orderId !== mostRecentDeliveredOrder.id) {
+                        setOrderId(mostRecentDeliveredOrder.id);
+                        setOrderStatus(null);
+                    }
                 } else {
                     setOrderId(null);
                     setOrderStatus(null);
@@ -165,7 +177,7 @@ function DeliveryStatus() {
             }
             setLoading(false);
         }
-    }, []);
+    }, [orderId]);
 
     const handleRefresh = async () => {
         setOrderId(null);
@@ -220,7 +232,11 @@ function DeliveryStatus() {
         if (!orderId) return;
         
         const fetchOrderStatus = async () => {
-            setLoading(true);
+            // Don't set loading to true if we already have status (to avoid flickering)
+            const hadStatus = !!orderStatusRef.current;
+            if (!hadStatus) {
+                setLoading(true);
+            }
             try {
                 const res = await api.get(`/api/orders/${orderId}/status/`);
                 setOrderStatus(res.data);
@@ -248,14 +264,27 @@ function DeliveryStatus() {
                 } else if (err.response?.status === 401) {
                     setError('Please log in to view order details.');
                 } else {
-                    setError('Failed to fetch order status. Please try again later.');
+                    // Don't show error if we already have status, just log it
+                    if (!hadStatus) {
+                        setError('Failed to fetch order status. Please try again later.');
+                    }
                 }
             } finally {
                 setLoading(false);
             }
         };
+        
+        // Fetch status immediately
         fetchOrderStatus();
-    }, [orderId]);
+        
+        // Also set up polling for status updates (only if not delivered)
+        const statusInterval = setInterval(() => {
+            fetchOrderStatus();
+        }, 15000); // Poll every 15 seconds
+        
+        return () => clearInterval(statusInterval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [orderId]); // orderStatus is accessed via ref to avoid dependency loop
 
     // Only show the global loader when we have no order data yet
     if (loading && !orderId && !orderStatus) {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Alert,
     Box,
@@ -77,8 +77,6 @@ function OrderManagement() {
         }
     };
 
-    const filteredOrders = useMemo(() => orders, [orders]);
-
     return (
         <Box sx={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
             <Navbar title="Order Management" />
@@ -138,7 +136,7 @@ function OrderManagement() {
                         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
                             <CircularProgress />
                         </Box>
-                    ) : filteredOrders.length === 0 ? (
+                    ) : orders.length === 0 ? (
                         <Card>
                             <CardContent>
                                 <Typography variant="body2" sx={{ color: '#718096' }}>
@@ -147,7 +145,7 @@ function OrderManagement() {
                             </CardContent>
                         </Card>
                     ) : (
-                        filteredOrders.map((order) => {
+                        orders.map((order) => {
                             const statusStyle = statusColors[order.status] || statusColors.RECEIVED;
                             return (
                                 <Card key={order.id} sx={{ borderRadius: 3 }}>

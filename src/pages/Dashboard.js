@@ -21,7 +21,6 @@ import { TrendingUp, ShoppingBag, Paid, Restaurant } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
 import api from '../api';
 import { useNavigate } from 'react-router-dom';
-import { getDefaultRouteForRole } from '../utils/roleUtils';
 
 const toCurrency = (value) => {
     if (value === null || value === undefined) return 'GHS 0.00';
@@ -188,7 +187,7 @@ function Dashboard() {
                                         <Stack direction="row" spacing={2}>
                                             <Button
                                                 variant="outlined"
-                                                onClick={() => navigate(getDefaultRouteForRole('super_admin'))}
+                                                onClick={() => navigate('/orders/manage')}
                                             >
                                                 Manage Orders
                                             </Button>

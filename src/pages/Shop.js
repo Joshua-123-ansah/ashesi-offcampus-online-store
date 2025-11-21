@@ -23,7 +23,8 @@ import {
     Search,
     ShoppingCart,
     Star,
-    AccessTime
+    AccessTime,
+    TrackChanges
 } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
 import Loader from '../components/Loader';
@@ -373,6 +374,29 @@ function Shop() {
 
 
             </Container>
+
+            {/* Floating Track Order Button */}
+            <Fab
+                variant="extended"
+                sx={{
+                    position: 'fixed',
+                    bottom: totalItems > 0 ? 80 : 16,
+                    right: 16,
+                    zIndex: 1000,
+                    backgroundColor: '#06C167',
+                    color: 'white',
+                    px: 3,
+                    fontSize: '1rem',
+                    '&:hover': {
+                        backgroundColor: '#048A47',
+                        transform: 'scale(1.05)'
+                    }
+                }}
+                onClick={() => navigate('/delivery-status')}
+            >
+                <TrackChanges sx={{ mr: 1 }} />
+                Track Order
+            </Fab>
 
             {/* Floating Cart Button */}
             {totalItems > 0 && (

@@ -8,14 +8,12 @@ import {
     Card,
     CardContent,
     CardMedia,
-    Fab,
-    Tooltip,
     Chip,
     Button,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { TrackChanges, Restaurant, Computer, Store, AccessTime, Star } from '@mui/icons-material';
+import { Restaurant, Computer, Store, AccessTime, Star } from '@mui/icons-material';
 
 const shops = [
     {
@@ -265,31 +263,6 @@ function Home() {
                     ))}
                 </Grid>
             </Container>
-
-            {/* Floating Button */}
-            <Tooltip title="Track your order" arrow>
-                <Fab
-                    variant="extended"
-                    sx={{
-                        position: 'fixed',
-                        bottom: { xs: 16, sm: 24 },
-                        right: { xs: 16, sm: 24 },
-                        zIndex: 1000,
-                        backgroundColor: '#06C167',
-                        color: 'white',
-                        px: 3,
-                        fontSize: '1rem',
-                        '&:hover': {
-                            backgroundColor: '#048A47',
-                            transform: 'scale(1.05)'
-                        }
-                    }}
-                    onClick={() => navigate('/delivery-status')}
-                >
-                    <TrackChanges sx={{ mr: 1 }} />
-                    Track Order
-                </Fab>
-            </Tooltip>
         </Box>
     );
 }

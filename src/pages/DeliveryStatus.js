@@ -180,8 +180,9 @@ function DeliveryStatus() {
     }, [orderId]);
 
     const handleRefresh = async () => {
-        setOrderId(null);
-        setOrderStatus(null);
+        // Preserve current order data while refreshing to avoid flash
+        // Only clear if fetch returns no orders
+        setLoading(true);
         await fetchLatestOrder();
     };
 
@@ -286,8 +287,8 @@ function DeliveryStatus() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [orderId]); // orderStatus is accessed via ref to avoid dependency loop
 
-    // Only show the global loader when we have no order data yet
-    if (loading && !orderId && !orderStatus) {
+    // Only show the global loader when we have no order data yet and we're not refreshing
+    if (loading && !orderId && !orderStatus && !error) {
         return (
             <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
                 <Navbar/>
@@ -357,7 +358,7 @@ function DeliveryStatus() {
         );
     }
 
-    if (!orderId) {
+    if (!orderId && !loading) {
         return (
             <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
                 <Navbar/>

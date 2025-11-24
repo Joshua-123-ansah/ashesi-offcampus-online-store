@@ -149,12 +149,20 @@ function OrderManagement() {
                             const statusStyle = statusColors[order.status] || statusColors.RECEIVED;
                             return (
                                 <Card key={order.id} sx={{ borderRadius: 3 }}>
-                                    <CardContent>
-                                        <Grid container spacing={3}>
+                                    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                                        <Grid container spacing={{ xs: 2, sm: 3 }}>
                                             <Grid item xs={12} md={8}>
                                                 <Stack spacing={2}>
-                                                    <Stack direction="row" spacing={2} alignItems="center">
-                                                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                                    <Stack 
+                                                        direction={{ xs: 'column', sm: 'row' }} 
+                                                        spacing={{ xs: 1, sm: 2 }} 
+                                                        alignItems={{ xs: 'flex-start', sm: 'center' }}
+                                                        flexWrap="wrap"
+                                                    >
+                                                        <Typography variant="h6" sx={{ 
+                                                            fontWeight: 600,
+                                                            fontSize: { xs: '1rem', sm: '1.25rem' }
+                                                        }}>
                                                             Order #{order.id}
                                                         </Typography>
                                                         <Chip
@@ -163,10 +171,14 @@ function OrderManagement() {
                                                                 backgroundColor: statusStyle.bg,
                                                                 color: statusStyle.color,
                                                                 fontWeight: 600,
+                                                                fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                                             }}
                                                         />
                                                     </Stack>
-                                                    <Typography variant="body2" sx={{ color: '#718096' }}>
+                                                    <Typography variant="body2" sx={{ 
+                                                        color: '#718096',
+                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                    }}>
                                                         Placed on {formatDateTime(order.created_at)}
                                                     </Typography>
                                                     <Divider />
@@ -178,12 +190,22 @@ function OrderManagement() {
                                                                     key={`${order.id}-${item.food_item}`}
                                                                     direction="row"
                                                                     justifyContent="space-between"
-                                                                    sx={{ backgroundColor: '#f7fafc', borderRadius: 2, p: 1.5 }}
+                                                                    sx={{ 
+                                                                        backgroundColor: '#f7fafc', 
+                                                                        borderRadius: 2, 
+                                                                        p: { xs: 1, sm: 1.5 } 
+                                                                    }}
                                                                 >
-                                                                    <Typography sx={{ fontWeight: 500 }}>
+                                                                    <Typography sx={{ 
+                                                                        fontWeight: 500,
+                                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                                    }}>
                                                                         {itemName}
                                                                     </Typography>
-                                                                    <Typography sx={{ color: '#4A5568' }}>
+                                                                    <Typography sx={{ 
+                                                                        color: '#4A5568',
+                                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                                    }}>
                                                                         Qty: {item.quantity}
                                                                     </Typography>
                                                                 </Stack>
@@ -195,39 +217,66 @@ function OrderManagement() {
                                             <Grid item xs={12} md={4}>
                                                 <Stack spacing={2}>
                                                     <Box>
-                                                        <Typography variant="subtitle2" sx={{ color: '#718096', textTransform: 'uppercase' }}>
+                                                        <Typography variant="subtitle2" sx={{ 
+                                                            color: '#718096', 
+                                                            textTransform: 'uppercase',
+                                                            fontSize: { xs: '0.625rem', sm: '0.75rem' }
+                                                        }}>
                                                             Customer
                                                         </Typography>
-                                                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                                        <Typography variant="body1" sx={{ 
+                                                            fontWeight: 600,
+                                                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                                                        }}>
                                                             {order.customer
                                                                 ? `${order.customer.first_name} ${order.customer.last_name}`
                                                                 : '—'}
                                                         </Typography>
                                                         {order.customer?.role && (
-                                                            <Typography variant="body2" sx={{ color: '#A0AEC0' }}>
+                                                            <Typography variant="body2" sx={{ 
+                                                                color: '#A0AEC0',
+                                                                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                            }}>
                                                                 {ROLE_LABELS[order.customer.role] || order.customer.role}
                                                             </Typography>
                                                         )}
                                                     </Box>
                                                     <Box>
-                                                        <Typography variant="subtitle2" sx={{ color: '#718096', textTransform: 'uppercase' }}>
+                                                        <Typography variant="subtitle2" sx={{ 
+                                                            color: '#718096', 
+                                                            textTransform: 'uppercase',
+                                                            fontSize: { xs: '0.625rem', sm: '0.75rem' }
+                                                        }}>
                                                             Total
                                                         </Typography>
-                                                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#2d3748' }}>
+                                                        <Typography variant="h6" sx={{ 
+                                                            fontWeight: 700, 
+                                                            color: '#2d3748',
+                                                            fontSize: { xs: '1rem', sm: '1.25rem' }
+                                                        }}>
                                                             GHS {Number(order.total_price).toFixed(2)}
                                                         </Typography>
                                                     </Box>
                                                     <FormControl fullWidth>
-                                                        <InputLabel id={`status-${order.id}`}>Update Status</InputLabel>
+                                                        <InputLabel id={`status-${order.id}`} sx={{
+                                                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                                                        }}>
+                                                            Update Status
+                                                        </InputLabel>
                                                         <Select
                                                             labelId={`status-${order.id}`}
                                                             value={order.status}
                                                             label="Update Status"
                                                             onChange={(event) => handleStatusChange(order.id, event.target.value)}
                                                             disabled={Boolean(updating[order.id])}
+                                                            sx={{
+                                                                fontSize: { xs: '0.875rem', sm: '1rem' }
+                                                            }}
                                                         >
                                                             {ORDER_STATUS_OPTIONS.map((option) => (
-                                                                <MenuItem key={option.value} value={option.value}>
+                                                                <MenuItem key={option.value} value={option.value} sx={{
+                                                                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                                                                }}>
                                                                     {option.label}
                                                                 </MenuItem>
                                                             ))}

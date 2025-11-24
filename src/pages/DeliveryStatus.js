@@ -119,9 +119,11 @@ function DeliveryStatus() {
 
     const activeStepIndex = statusMap[orderStatus?.status] ?? 0;
 
-    const fetchLatestOrder = useCallback(async () => {
+    const fetchLatestOrder = useCallback(async (showLoading = true) => {
         try {
-            setLoading(true);
+            if (showLoading) {
+                setLoading(true);
+            }
             setError(null);
             
             const res = await api.get('/api/orders/');
@@ -162,10 +164,16 @@ function DeliveryStatus() {
                     setOrderStatus(null);
                 }
                 // Clear loading after successful processing
-                setLoading(false);
+                if (showLoading) {
+                    setLoading(false);
+                }
             } else {
+                setOrderId(null);
+                setOrderStatus(null);
                 setError('You don\'t have any orders yet. Start shopping to place your first order!');
-                setLoading(false);
+                if (showLoading) {
+                    setLoading(false);
+                }
             }
         } catch (err) {
             if (err.response?.status === 401) {
@@ -175,53 +183,37 @@ function DeliveryStatus() {
             } else {
                 setError('Failed to fetch orders. Please try again later.');
             }
-            setLoading(false);
+            if (showLoading) {
+                setLoading(false);
+            }
         }
     }, [orderId]);
 
     const handleRefresh = async () => {
         // Preserve current order data while refreshing to avoid flash
-        // Only clear if fetch returns no orders
         setLoading(true);
-        await fetchLatestOrder();
+        await fetchLatestOrder(true);
     };
 
+    // Initial fetch on mount
     useEffect(() => {
-        fetchLatestOrder();
+        fetchLatestOrder(true);
     }, [fetchLatestOrder]);
 
+    // Consolidated polling: check for new orders every 30 seconds
     useEffect(() => {
         const interval = setInterval(() => {
-            fetchLatestOrder();
+            fetchLatestOrder(false); // Don't show loading for background polling
         }, 30000);
 
         return () => clearInterval(interval);
     }, [fetchLatestOrder]);
 
-    useEffect(() => {
-        if (orderId && orderStatus?.status && orderStatus.status !== 'DELIVERED') {
-            const frequentInterval = setInterval(() => {
-                fetchLatestOrder();
-            }, 15000);
-
-            return () => clearInterval(frequentInterval);
-        }
-    }, [orderId, orderStatus?.status, fetchLatestOrder]);
-
-    useEffect(() => {
-        if (!orderId) {
-            const frequentInterval = setInterval(() => {
-                fetchLatestOrder();
-            }, 10000);
-
-            return () => clearInterval(frequentInterval);
-        }
-    }, [orderId, fetchLatestOrder]);
-
+    // Refresh when page becomes visible
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (!document.hidden) {
-                fetchLatestOrder();
+                fetchLatestOrder(false); // Don't show loading for visibility refresh
             }
         };
 
@@ -232,55 +224,68 @@ function DeliveryStatus() {
     useEffect(() => {
         if (!orderId) return;
         
-        const fetchOrderStatus = async () => {
-            // Don't set loading to true if we already have status (to avoid flickering)
-            const hadStatus = !!orderStatusRef.current;
-            if (!hadStatus) {
+        const fetchOrderStatus = async (isInitial = false) => {
+            // Only show loading on initial fetch
+            if (isInitial && !orderStatusRef.current) {
                 setLoading(true);
             }
+            
             try {
                 const res = await api.get(`/api/orders/${orderId}/status/`);
-                setOrderStatus(res.data);
+                const newStatus = res.data?.status;
                 
-                const status = res.data.status;
-                switch (status) {
-                    case 'RECEIVED':
-                        setEstimatedTime('25-35');
-                        break;
-                    case 'PREPARING':
-                        setEstimatedTime('15-25');
-                        break;
-                    case 'OUT_FOR_DELIVERY':
-                        setEstimatedTime('5-10');
-                        break;
-                    case 'DELIVERED':
-                        setEstimatedTime('0');
-                        break;
-                    default:
-                        setEstimatedTime('20-30');
+                if (newStatus) {
+                    setOrderStatus(res.data);
+                    setError(null); // Clear any previous errors
+                    
+                    // Update estimated time based on status
+                    switch (newStatus) {
+                        case 'RECEIVED':
+                            setEstimatedTime('25-35');
+                            break;
+                        case 'PREPARING':
+                            setEstimatedTime('15-25');
+                            break;
+                        case 'OUT_FOR_DELIVERY':
+                            setEstimatedTime('5-10');
+                            break;
+                        case 'DELIVERED':
+                            setEstimatedTime('0');
+                            break;
+                        default:
+                            setEstimatedTime('20-30');
+                    }
                 }
             } catch (err) {
-                if (err.response?.status === 404) {
-                    setError('Order not found. It may have been cancelled or removed.');
-                } else if (err.response?.status === 401) {
-                    setError('Please log in to view order details.');
-                } else {
-                    // Don't show error if we already have status, just log it
-                    if (!hadStatus) {
+                // Only show error on initial fetch or if we don't have status
+                if (isInitial || !orderStatusRef.current) {
+                    if (err.response?.status === 404) {
+                        setError('Order not found. It may have been cancelled or removed.');
+                        setOrderId(null);
+                        setOrderStatus(null);
+                    } else if (err.response?.status === 401) {
+                        setError('Please log in to view order details.');
+                    } else {
                         setError('Failed to fetch order status. Please try again later.');
                     }
                 }
+                // Silently fail on background polling errors to avoid disrupting UI
             } finally {
-                setLoading(false);
+                if (isInitial) {
+                    setLoading(false);
+                }
             }
         };
         
         // Fetch status immediately
-        fetchOrderStatus();
+        fetchOrderStatus(true);
         
-        // Also set up polling for status updates (only if not delivered)
+        // Set up polling for status updates (only if not delivered)
         const statusInterval = setInterval(() => {
-            fetchOrderStatus();
+            const currentStatus = orderStatusRef.current?.status;
+            if (currentStatus !== 'DELIVERED') {
+                fetchOrderStatus(false); // Background polling, no loading state
+            }
         }, 15000); // Poll every 15 seconds
         
         return () => clearInterval(statusInterval);
@@ -358,42 +363,80 @@ function DeliveryStatus() {
         );
     }
 
+    // Show loading if we have orderId but no status yet
+    if (orderId && !orderStatus && loading) {
+        return (
+            <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+                <Navbar/>
+                <Container sx={{ mt: 4 }}>
+                    <Loader message="Loading order details..." />
+                </Container>
+            </div>
+        );
+    }
+
     if (!orderId && !loading) {
         return (
             <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
                 <Navbar/>
-                <Container maxWidth="md" sx={{ py: 6 }}>
+                <Container maxWidth="md" sx={{ py: { xs: 3, sm: 4, md: 6 }, px: { xs: 2, sm: 3 } }}>
                     <Paper
                         sx={{
-                            p: 6,
+                            p: { xs: 3, sm: 4, md: 6 },
                             borderRadius: 3,
                             backgroundColor: 'white',
                             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
                             textAlign: 'center'
                         }}
                     >
-                        <CheckCircle sx={{ fontSize: 80, color: '#06C167', mb: 3 }} />
-                        <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#2d3748' }}>
+                        <CheckCircle sx={{ 
+                            fontSize: { xs: 60, sm: 70, md: 80 }, 
+                            color: '#06C167', 
+                            mb: { xs: 2, sm: 3 } 
+                        }} />
+                        <Typography variant="h4" sx={{ 
+                            fontWeight: 700, 
+                            mb: 2, 
+                            color: '#2d3748',
+                            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+                        }}>
                             No Active Orders
                         </Typography>
-                        <Typography variant="body1" sx={{ color: '#718096', mb: 4 }}>
+                        <Typography variant="body1" sx={{ 
+                            color: '#718096', 
+                            mb: { xs: 3, sm: 4 },
+                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                        }}>
                             You don't have any active orders to track. Ready to place a new order?
                         </Typography>
                         
-                        <Typography variant="caption" sx={{ color: '#a0aec0', display: 'block', mb: 4 }}>
-                            🔄 Automatically checking for new orders every 10 seconds
+                        <Typography variant="caption" sx={{ 
+                            color: '#a0aec0', 
+                            display: 'block', 
+                            mb: { xs: 3, sm: 4 },
+                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                        }}>
+                            🔄 Automatically checking for new orders every 30 seconds
                         </Typography>
                         
-                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <Box sx={{ 
+                            display: 'flex', 
+                            gap: 2, 
+                            justifyContent: 'center', 
+                            flexWrap: 'wrap',
+                            flexDirection: { xs: 'column', sm: 'row' }
+                        }}>
                             <Button
                                 variant="contained"
                                 onClick={() => navigate('/shop/cassa')}
+                                fullWidth
                                 sx={{
                                     backgroundColor: '#06C167',
-                                    px: 4,
-                                    py: 1.5,
-                                    fontSize: '1.1rem',
+                                    px: { xs: 3, sm: 4 },
+                                    py: { xs: 1.25, sm: 1.5 },
+                                    fontSize: { xs: '0.875rem', sm: '1rem', md: '1.1rem' },
                                     fontWeight: 600,
+                                    maxWidth: { xs: '100%', sm: 'auto' },
                                     '&:hover': { backgroundColor: '#048A47' }
                                 }}
                             >
@@ -403,14 +446,16 @@ function DeliveryStatus() {
                                 variant="outlined"
                                 onClick={handleRefresh}
                                 disabled={loading}
+                                fullWidth
                                 startIcon={loading ? <CircularProgress size={16} /> : <Refresh />}
                                 sx={{
                                     borderColor: '#06C167',
                                     color: '#06C167',
-                                    px: 4,
-                                    py: 1.5,
-                                    fontSize: '1.1rem',
+                                    px: { xs: 3, sm: 4 },
+                                    py: { xs: 1.25, sm: 1.5 },
+                                    fontSize: { xs: '0.875rem', sm: '1rem', md: '1.1rem' },
                                     fontWeight: 600,
+                                    maxWidth: { xs: '100%', sm: 'auto' },
                                     '&:hover': { 
                                         borderColor: '#048A47',
                                         backgroundColor: 'rgba(6, 193, 103, 0.1)'
@@ -430,12 +475,18 @@ function DeliveryStatus() {
         <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
             <Navbar/>
 
-            <Container maxWidth="lg" sx={{ py: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+            <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3, md: 4 }, px: { xs: 2, sm: 3 } }}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    mb: { xs: 3, md: 4 },
+                    flexWrap: 'wrap',
+                    gap: 1
+                }}>
                     <IconButton
                         onClick={() => navigate('/')}
                         sx={{
-                            mr: 2,
+                            mr: { xs: 1, sm: 2 },
                             color: '#2d3748',
                             backgroundColor: 'white',
                             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
@@ -444,18 +495,25 @@ function DeliveryStatus() {
                     >
                         <ArrowBack />
                     </IconButton>
-                    <Box sx={{ flex: 1 }}>
-                        <Typography variant="h4" sx={{ fontWeight: 700, color: '#2d3748' }}>
+                    <Box sx={{ flex: 1, minWidth: { xs: '150px', sm: 'auto' } }}>
+                        <Typography variant="h4" sx={{ 
+                            fontWeight: 700, 
+                            color: '#2d3748',
+                            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+                        }}>
                             Track Your Order
                         </Typography>
-                        <Typography variant="body1" sx={{ color: '#718096' }}>
+                        <Typography variant="body1" sx={{ 
+                            color: '#718096',
+                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                        }}>
                             Order #{orderId}
                         </Typography>
                     </Box>
                     <IconButton
                         onClick={handleRefresh}
                         sx={{
-                            ml: 2,
+                            ml: { xs: 0, sm: 2 },
                             color: '#2d3748',
                             backgroundColor: 'white',
                             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
@@ -468,20 +526,31 @@ function DeliveryStatus() {
                     </IconButton>
                 </Box>
 
-                <Grid container spacing={4}>
+                <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
                     <Grid item xs={12} lg={8}>
                         <Paper
                             sx={{
-                                p: 4,
+                                p: { xs: 2, sm: 3, md: 4 },
                                 borderRadius: 3,
                                 backgroundColor: 'white',
                                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                                mb: 3
+                                mb: { xs: 2, md: 3 }
                             }}
                         >
-                            <Box sx={{ mb: 4 }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
+                            <Box sx={{ mb: { xs: 3, md: 4 } }}>
+                                <Box sx={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center', 
+                                    mb: 2,
+                                    flexWrap: 'wrap',
+                                    gap: 1
+                                }}>
+                                    <Typography variant="h6" sx={{ 
+                                        fontWeight: 600, 
+                                        color: '#2d3748',
+                                        fontSize: { xs: '1rem', sm: '1.25rem' }
+                                    }}>
                                         {steps[activeStepIndex].label}
                                     </Typography>
                                     {orderStatus?.status !== 'DELIVERED' && (
@@ -490,7 +559,8 @@ function DeliveryStatus() {
                                             sx={{
                                                 backgroundColor: '#06C167',
                                                 color: 'white',
-                                                fontWeight: 600
+                                                fontWeight: 600,
+                                                fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                             }}
                                         />
                                     )}
@@ -516,34 +586,43 @@ function DeliveryStatus() {
                                 )}
                             </Box>
 
-                            <Stepper activeStep={activeStepIndex} orientation="vertical">
+                            <Stepper 
+                                activeStep={activeStepIndex} 
+                                orientation="vertical"
+                                sx={{
+                                    '& .MuiStepLabel-root': {
+                                        paddingLeft: { xs: 1, sm: 2 }
+                                    }
+                                }}
+                            >
                                 {steps.map((step, index) => (
                                     <Step key={step.label}>
                                         <StepLabel
                                             StepIconComponent={() => (
                                                 <Box
                                                     sx={{
-                                                        width: 48,
-                                                        height: 48,
+                                                        width: { xs: 40, sm: 48 },
+                                                        height: { xs: 40, sm: 48 },
                                                         borderRadius: '50%',
                                                         backgroundColor: getStatusColor(index, activeStepIndex),
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
                                                         color: 'white',
-                                                        mr: 2
+                                                        mr: { xs: 1, sm: 2 }
                                                     }}
                                                 >
                                                     {step.icon}
                                                 </Box>
                                             )}
                                         >
-                                            <Box sx={{ ml: 2 }}>
+                                            <Box sx={{ ml: { xs: 1, sm: 2 } }}>
                                                 <Typography
                                                     variant="h6"
                                                     sx={{
                                                         fontWeight: 600,
-                                                        color: index <= activeStepIndex ? '#2d3748' : '#a0aec0'
+                                                        color: index <= activeStepIndex ? '#2d3748' : '#a0aec0',
+                                                        fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }
                                                     }}
                                                 >
                                                     {step.label}
@@ -551,7 +630,8 @@ function DeliveryStatus() {
                                                 <Typography
                                                     variant="body2"
                                                     sx={{
-                                                        color: index <= activeStepIndex ? '#718096' : '#a0aec0'
+                                                        color: index <= activeStepIndex ? '#718096' : '#a0aec0',
+                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
                                                     }}
                                                 >
                                                     {step.description}
@@ -590,38 +670,43 @@ function DeliveryStatus() {
                     </Grid>
 
                     <Grid item xs={12} lg={4}>
-                        <Box sx={{ position: 'sticky', top: 100 }}>
+                        <Box sx={{ position: { lg: 'sticky' }, top: { lg: 100 } }}>
                             <Card sx={{ 
-                                mb: 3, 
+                                mb: { xs: 2, md: 3 }, 
                                 backgroundColor: '#f0fff4', 
                                 border: '1px solid #06C167',
                                 width: '100%',
-                                height: 180,
+                                height: { xs: 160, sm: 180 },
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'center'
                             }}>
                                 <CardContent sx={{ 
                                     textAlign: 'center', 
-                                    py: 3,
+                                    py: { xs: 2, sm: 3 },
                                     height: '100%',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     justifyContent: 'center',
                                     alignItems: 'center'
                                 }}>
-                                    <AccessTime sx={{ fontSize: 48, color: '#06C167', mb: 2 }} />
+                                    <AccessTime sx={{ 
+                                        fontSize: { xs: 36, sm: 48 }, 
+                                        color: '#06C167', 
+                                        mb: { xs: 1, sm: 2 } 
+                                    }} />
                                     <Typography variant="h6" sx={{ 
                                         fontWeight: 600, 
                                         mb: 1, 
                                         color: '#2d3748',
-                                        width: '100%'
+                                        width: '100%',
+                                        fontSize: { xs: '0.875rem', sm: '1rem' }
                                     }}>
                                         Estimated Time
                                     </Typography>
                                     <Box sx={{ 
                                         width: '100%',
-                                        height: 60,
+                                        height: { xs: 50, sm: 60 },
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center'
@@ -630,7 +715,8 @@ function DeliveryStatus() {
                                             fontWeight: 700, 
                                             color: '#06C167',
                                             textAlign: 'center',
-                                            width: '100%'
+                                            width: '100%',
+                                            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
                                         }}>
                                             {`${estimatedTime} min`}
                                         </Typography>
@@ -640,16 +726,25 @@ function DeliveryStatus() {
 
                             <Paper
                                 sx={{
-                                    p: 3,
+                                    p: { xs: 2, sm: 3 },
                                     borderRadius: 3,
                                     backgroundColor: 'white',
                                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
                                 }}
                             >
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#2d3748' }}>
+                                <Typography variant="h6" sx={{ 
+                                    fontWeight: 600, 
+                                    mb: 2, 
+                                    color: '#2d3748',
+                                    fontSize: { xs: '1rem', sm: '1.25rem' }
+                                }}>
                                     Need Help?
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: '#718096', mb: 3 }}>
+                                <Typography variant="body2" sx={{ 
+                                    color: '#718096', 
+                                    mb: 3,
+                                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                                }}>
                                     Have questions about your order? Our team is here to help.
                                 </Typography>
                                 <Button
@@ -660,8 +755,9 @@ function DeliveryStatus() {
                                     sx={{
                                         borderColor: '#06C167',
                                         color: '#06C167',
-                                        py: 1.5,
+                                        py: { xs: 1, sm: 1.5 },
                                         fontWeight: 600,
+                                        fontSize: { xs: '0.875rem', sm: '1rem' },
                                         '&:hover': {
                                             borderColor: '#048A47',
                                             backgroundColor: 'rgba(6, 193, 103, 0.1)'

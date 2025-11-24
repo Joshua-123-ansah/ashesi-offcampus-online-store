@@ -184,53 +184,106 @@ function FoodManagement() {
                                         No food items found. Add your first menu item to get started.
                                     </Typography>
                                 ) : (
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell>Name</TableCell>
-                                                <TableCell>Price (GHS)</TableCell>
-                                                <TableCell>Status</TableCell>
-                                                <TableCell>Extras</TableCell>
-                                                <TableCell align="right">Actions</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {items.map((item) => (
-                                                <TableRow key={item.id}>
-                                                    <TableCell>{item.name}</TableCell>
-                                                    <TableCell>{Number(item.price).toFixed(2)}</TableCell>
-                                                    <TableCell>
-                                                        <Typography
-                                                            sx={{
-                                                                display: 'inline-block',
-                                                                px: 1.5,
-                                                                py: 0.5,
-                                                                borderRadius: 2,
-                                                                fontSize: '0.75rem',
-                                                                backgroundColor: item.status ? 'rgba(6, 193, 103, 0.1)' : 'rgba(229, 62, 62, 0.1)',
-                                                                color: item.status ? '#048A47' : '#C53030',
-                                                            }}
-                                                        >
-                                                            {item.status ? 'Active' : 'Hidden'}
-                                                        </Typography>
+                                    <Box sx={{ overflowX: 'auto' }}>
+                                        <Table sx={{ minWidth: 600 }}>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell sx={{ 
+                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                                        fontWeight: 600
+                                                    }}>
+                                                        Name
                                                     </TableCell>
-                                                    <TableCell sx={{ maxWidth: 280 }}>
-                                                        <Typography variant="body2" sx={{ color: '#4A5568' }}>
-                                                            {item.extras || '—'}
-                                                        </Typography>
+                                                    <TableCell sx={{ 
+                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                                        fontWeight: 600
+                                                    }}>
+                                                        Price (GHS)
                                                     </TableCell>
-                                                    <TableCell align="right">
-                                                        <IconButton onClick={() => handleOpenDialog(item)}>
-                                                            <Edit />
-                                                        </IconButton>
-                                                        <IconButton color="error" onClick={() => handleDelete(item.id)}>
-                                                            <Delete />
-                                                        </IconButton>
+                                                    <TableCell sx={{ 
+                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                                        fontWeight: 600
+                                                    }}>
+                                                        Status
+                                                    </TableCell>
+                                                    <TableCell sx={{ 
+                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                                        fontWeight: 600
+                                                    }}>
+                                                        Extras
+                                                    </TableCell>
+                                                    <TableCell align="right" sx={{ 
+                                                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                                        fontWeight: 600
+                                                    }}>
+                                                        Actions
                                                     </TableCell>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                            </TableHead>
+                                            <TableBody>
+                                                {items.map((item) => (
+                                                    <TableRow key={item.id}>
+                                                        <TableCell sx={{ 
+                                                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                        }}>
+                                                            {item.name}
+                                                        </TableCell>
+                                                        <TableCell sx={{ 
+                                                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                        }}>
+                                                            {Number(item.price).toFixed(2)}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Typography
+                                                                sx={{
+                                                                    display: 'inline-block',
+                                                                    px: { xs: 1, sm: 1.5 },
+                                                                    py: 0.5,
+                                                                    borderRadius: 2,
+                                                                    fontSize: { xs: '0.625rem', sm: '0.75rem' },
+                                                                    backgroundColor: item.status ? 'rgba(6, 193, 103, 0.1)' : 'rgba(229, 62, 62, 0.1)',
+                                                                    color: item.status ? '#048A47' : '#C53030',
+                                                                }}
+                                                            >
+                                                                {item.status ? 'Active' : 'Hidden'}
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell sx={{ 
+                                                            maxWidth: { xs: 150, sm: 280 },
+                                                            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                                                        }}>
+                                                            <Typography variant="body2" sx={{ 
+                                                                color: '#4A5568',
+                                                                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap'
+                                                            }}>
+                                                                {item.extras || '—'}
+                                                            </Typography>
+                                                        </TableCell>
+                                                        <TableCell align="right">
+                                                            <IconButton 
+                                                                onClick={() => handleOpenDialog(item)}
+                                                                size="small"
+                                                                sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                                                            >
+                                                                <Edit fontSize="inherit" />
+                                                            </IconButton>
+                                                            <IconButton 
+                                                                color="error" 
+                                                                onClick={() => handleDelete(item.id)}
+                                                                size="small"
+                                                                sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                                                            >
+                                                                <Delete fontSize="inherit" />
+                                                            </IconButton>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </Box>
                                 )}
                             </CardContent>
                         </Card>
@@ -238,10 +291,28 @@ function FoodManagement() {
                 </Stack>
             </Container>
 
-            <Dialog open={dialogOpen} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-                <DialogTitle>{selectedItem ? 'Edit Food Item' : 'Add Food Item'}</DialogTitle>
-                <DialogContent>
-                    <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Dialog 
+                open={dialogOpen} 
+                onClose={handleCloseDialog} 
+                fullWidth 
+                maxWidth="sm"
+                fullScreen={false}
+                PaperProps={{
+                    sx: {
+                        m: { xs: 1, sm: 2 },
+                        maxHeight: { xs: '95vh', sm: '90vh' },
+                        width: { xs: 'calc(100% - 16px)', sm: 'auto' }
+                    }
+                }}
+            >
+                <DialogTitle sx={{ 
+                    fontSize: { xs: '1rem', sm: '1.25rem' },
+                    pb: { xs: 1, sm: 2 }
+                }}>
+                    {selectedItem ? 'Edit Food Item' : 'Add Food Item'}
+                </DialogTitle>
+                <DialogContent sx={{ px: { xs: 2, sm: 3 } }}>
+                    <Grid container spacing={2} sx={{ mt: { xs: 0, sm: 1 } }}>
                         <Grid item xs={12}>
                             <TextField
                                 label="Name"
